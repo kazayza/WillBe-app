@@ -11,6 +11,7 @@ import 'employee_attendance_screen.dart';
 import 'AttendanceHistoryScreen.dart';
 import 'crm_dashboard_screen.dart';
 import 'tasks_list_screen.dart';
+import '../services/update_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,6 +37,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _setupAnimations();
     _loadAllData();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+    UpdateService.checkForUpdate(context);
+  });
+}
   }
 
   void _setupAnimations() {
