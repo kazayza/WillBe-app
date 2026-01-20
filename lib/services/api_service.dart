@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
-  // الرابط بتاعنا
+  // الرابط الأساسي
   static const String baseUrl = "https://willbee-backend.vercel.app/api";
 
-  // دالة خاصة (Private) لتجهيز الهيدر
+  // ==================== HEADERS ====================
   static Future<Map<String, String>> _getHeaders() async {
     return {
       "Content-Type": "application/json",
@@ -14,10 +15,12 @@ class ApiService {
     };
   }
 
-  // 1. تسجيل الدخول
+  // ==================== AUTH ====================
+
+  /// تسجيل الدخول
   static Future<Map<String, dynamic>> login(String username, String password) async {
     final url = Uri.parse('$baseUrl/users/login');
-    
+
     try {
       final response = await http.post(
         url,
@@ -41,10 +44,12 @@ class ApiService {
     }
   }
 
-  // 2. دالة GET
+  // ==================== GENERIC METHODS ====================
+
+  /// GET Request
   static Future<dynamic> get(String endpoint) async {
     final url = Uri.parse('$baseUrl/$endpoint');
-    
+
     try {
       final response = await http.get(url, headers: await _getHeaders());
 
@@ -54,14 +59,15 @@ class ApiService {
         throw Exception('Error ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
+      debugPrint('GET Error [$endpoint]: $e');
       throw Exception('Network Error: $e');
     }
   }
 
-  // 3. دالة POST (اللي كانت ناقصة)
+  /// POST Request
   static Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
     final url = Uri.parse('$baseUrl/$endpoint');
-    
+
     try {
       final response = await http.post(
         url,
@@ -75,68 +81,15 @@ class ApiService {
         throw Exception('Error ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
+      debugPrint('POST Error [$endpoint]: $e');
       throw Exception('Network Error: $e');
     }
   }
 
-    // 4. دالة ترجمة الأسماء (مجانية)
-  static Future<String> translateName(String arabicText) async {
-    if (arabicText.trim().isEmpty) return "";
-
-    try {
-      // بنستخدم خدمة MyMemory المجانية
-      final url = Uri.parse(
-        'https://api.mymemory.translated.net/get?q=$arabicText&langpair=ar|en'
-      );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        // بنرجع النص المترجم
-        return data['responseData']['translatedText'] ?? "";
-      }
-    } catch (e) {
-      print("Translation Error: $e");
-    }
-    return ""; // لو حصل خطأ نرجع نص فاضي
-    
-  }
-
-  // جلب الملف المالي لطفل
-  static Future<List<dynamic>> getChildFinance(int childId) async {
-    // هنستخدم الرابط اللي عملناه في الباك اند (بيجيب السجل بالطفل)
-    // ملحوظة: الباك اند الحالي getChildSubscription بيرجع سجل واحد (آخر واحد).
-    // عشان نعرض "قائمة"، الأفضل نعدل الباك اند يرجع List، أو نستخدم اللي موجود مؤقتاً.
-    
-    // الحل السريع حالياً: هنجيب السجل المتاح
-    try {
-      final response = await get('child-finance/$childId');
-      
-      // لو الباك اند رجع List، رجعها زي ما هي
-      if (response is List) return response;
-      
-      // لو (لسبب ما) رجع Object، حطه جوه List
-      return [response];
-    } catch (e) {
-      return [];
-    }
-  }
-
-
-
-    // جلب موظف واحد بالـ ID
-  static Future<Map<String, dynamic>> getEmployeeById(int id) async {
-    final response = await get('employees/$id'); // ده هيشتغل لما ترفع الباك اند الجديد
-    return response;
-  }
-
-  
-
-  // 4. دالة PUT (للتعديل)
+  /// PUT Request
   static Future<dynamic> put(String endpoint, Map<String, dynamic> data) async {
     final url = Uri.parse('$baseUrl/$endpoint');
-    
+
     try {
       final response = await http.put(
         url,
@@ -150,7 +103,194 @@ class ApiService {
         throw Exception('Error ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
+      debugPrint('PUT Error [$endpoint]: $e');
       throw Exception('Network Error: $e');
     }
+  }
+
+  /// DELETE Request
+  static Future<dynamic> delete(String endpoint) async {
+    final url = Uri.parse('$baseUrl/$endpoint');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          return jsonDecode(response.body);
+        }
+        return {'success': true};
+      } else {
+        throw Exception('Error ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('DELETE Error [$endpoint]: $e');
+      throw Exception('Network Error: $e');
+    }
+  }
+
+  // ==================== EXPENSES - المصروفات ====================
+
+  /// جلب كل المصروفات
+  static Future<List<dynamic>> getExpenses() async {
+    try {
+      final response = await get('expenses');
+      if (response is List) {
+        return response;
+      } else if (response is Map && response['data'] != null) {
+        return response['data'];
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error loading expenses: $e');
+      throw Exception('فشل تحميل المصروفات: $e');
+    }
+  }
+
+  /// جلب مصروف واحد بالـ ID
+  static Future<Map<String, dynamic>> getExpenseById(int id) async {
+    try {
+      final response = await get('expenses/$id');
+      return response;
+    } catch (e) {
+      debugPrint('Error loading expense: $e');
+      throw Exception('فشل تحميل المصروف: $e');
+    }
+  }
+
+  /// إضافة مصروف جديد
+  static Future<dynamic> addExpense(Map<String, dynamic> data) async {
+    try {
+      final response = await post('expenses', data);
+      return response;
+    } catch (e) {
+      debugPrint('Error adding expense: $e');
+      throw Exception('فشل إضافة المصروف: $e');
+    }
+  }
+
+  /// تعديل مصروف
+  static Future<dynamic> updateExpense(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await put('expenses/$id', data);
+      return response;
+    } catch (e) {
+      debugPrint('Error updating expense: $e');
+      throw Exception('فشل تعديل المصروف: $e');
+    }
+  }
+
+  /// حذف مصروف
+  static Future<dynamic> deleteExpense(int id) async {
+    try {
+      final response = await delete('expenses/$id');
+      return response;
+    } catch (e) {
+      debugPrint('Error deleting expense: $e');
+      throw Exception('فشل حذف المصروف: $e');
+    }
+  }
+
+  // ==================== EXPENSE KINDS - أنواع المصروفات ====================
+
+  /// جلب أنواع المصروفات ✅ تم التصحيح
+  static Future<List<dynamic>> getExpenseKinds() async {
+    try {
+      final response = await get('expenses/kinds');  // ✅ الصح
+      if (response is List) {
+        return response;
+      } else if (response is Map && response['data'] != null) {
+        return response['data'];
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error loading expense kinds: $e');
+      return [];
+    }
+  }
+
+  // ==================== BRANCHES - الفروع ====================
+
+  /// جلب الفروع ✅ تم التصحيح
+  static Future<List<dynamic>> getBranches() async {
+    try {
+      final response = await get('expenses/branches');  // ✅ الصح
+      if (response is List) {
+        return response;
+      } else if (response is Map && response['data'] != null) {
+        return response['data'];
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error loading branches: $e');
+      return [];
+    }
+  }
+
+  // ==================== EMPLOYEES - الموظفين ====================
+
+  /// جلب كل الموظفين
+  static Future<List<dynamic>> getEmployees() async {
+    try {
+      final response = await get('employees');
+      if (response is List) {
+        return response;
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error loading employees: $e');
+      return [];
+    }
+  }
+
+  /// جلب موظف واحد بالـ ID
+  static Future<Map<String, dynamic>> getEmployeeById(int id) async {
+    try {
+      final response = await get('employees/$id');
+      return response;
+    } catch (e) {
+      debugPrint('Error loading employee: $e');
+      throw Exception('فشل تحميل بيانات الموظف');
+    }
+  }
+
+  // ==================== CHILDREN - الأطفال ====================
+
+  /// جلب الملف المالي لطفل
+  static Future<List<dynamic>> getChildFinance(int childId) async {
+    try {
+      final response = await get('child-finance/$childId');
+      if (response is List) return response;
+      return [response];
+    } catch (e) {
+      debugPrint('Error loading child finance: $e');
+      return [];
+    }
+  }
+
+  // ==================== TRANSLATION - الترجمة ====================
+
+  /// ترجمة الأسماء (مجانية)
+  static Future<String> translateName(String arabicText) async {
+    if (arabicText.trim().isEmpty) return "";
+
+    try {
+      final url = Uri.parse(
+        'https://api.mymemory.translated.net/get?q=$arabicText&langpair=ar|en',
+      );
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['responseData']['translatedText'] ?? "";
+      }
+    } catch (e) {
+      debugPrint("Translation Error: $e");
+    }
+    return "";
   }
 }
