@@ -6,6 +6,7 @@ import 'dart:ui';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
+import '../services/update_service.dart';
 import '../models/dashboard_model.dart';
 import '../config/app_sections.dart';
 
@@ -117,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       setState(() => isLoading = false);
       _fadeController.forward();
       _slideController.forward();
+      UpdateService.checkForUpdate(context);
     }
   }
 
