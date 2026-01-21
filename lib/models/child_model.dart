@@ -4,8 +4,10 @@ class Child {
   final num? nationalID;
   final String? birthDate;
   final int? age;
-  final bool status; // Active or not
+  final bool status;
   final int? branchId;
+  final String? addTime;      // 👈 جديد - تاريخ الإضافة
+  final int? sessionId;       // 👈 جديد - العام المالي
 
   Child({
     required this.id,
@@ -15,6 +17,8 @@ class Child {
     this.age,
     required this.status,
     this.branchId,
+    this.addTime,
+    this.sessionId,
   });
 
   factory Child.fromJson(Map<String, dynamic> json) {
@@ -28,6 +32,10 @@ class Child {
       age: json['Age'],
       branchId: json['Branch'],
       status: json['Status'] == true || json['Status'] == 1,
+      addTime: json['Addtime'] != null 
+          ? json['Addtime'].toString() 
+          : null,
+      sessionId: json['SessionID'],
     );
   }
 

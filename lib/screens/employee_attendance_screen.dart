@@ -6,6 +6,8 @@ import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
 import '../models/employee_model.dart';
 import '../services/api_service.dart';
+//import 'AttendanceHistoryScreen.dart';
+import 'attendance_calendar_screen.dart';
 
 class EmployeeAttendanceScreen extends StatefulWidget {
   final String? initialDate;
@@ -79,16 +81,13 @@ void initState() {
   }
 
   // 🔥 جلب الغياب المحفوظ لتاريخ معين
-  Future<void> _fetchSavedAttendance() async {
+Future<void> _fetchSavedAttendance() async {
   setState(() => _isLoadingAttendance = true);
 
-  // 1️⃣ تنظيف التاريخ (أمان إضافي)
   final cleanDate = _dateController.text.split('T')[0].trim();
 
   try {
-    final data = await ApiService.get(
-      'emp-attendance?date=$cleanDate'
-    );
+    final data = await ApiService.get('emp-attendance?date=$cleanDate');
 
     if (mounted) {
       setState(() {
@@ -99,22 +98,32 @@ void initState() {
         _notesMap.clear();
 
         if (data is List && data.isNotEmpty) {
-          // حفظ Master ID بأمان
+          // حفظ Master ID
           if (data[0]['masterId'] != null) {
             _masterId = int.tryParse(data[0]['masterId'].toString());
           }
-          
+
           for (var record in data) {
-            // 2️⃣ التحويل الآمن للـ ID (بيحل 90% من المشاكل)
             final empId = int.tryParse(record['empId'].toString()) ?? 0;
             final notes = record['Notes']?.toString() ?? '';
 
             if (empId != 0) {
               _savedAbsentIds.add(empId);
               _savedNotesMap[empId] = notes;
-
               _selectedAbsentIds.add(empId);
               _notesMap[empId] = notes;
+
+              // 👈 لو الموظف مش موجود في القائمة (متوقف) - نضيفه
+              bool exists = _allEmployees.any((e) => e.id == empId);
+              if (!exists) {
+                _allEmployees.add(Employee(
+                  id: empId,
+                  empName: record['empName']?.toString() ?? 'موظف سابق',
+                  job: record['job']?.toString(),
+                  branchName: record['branchName']?.toString(),
+                  status: false, // 👈 متوقف
+                ));
+              }
             }
           }
         } else {
@@ -125,7 +134,7 @@ void initState() {
       });
     }
   } catch (e) {
-    print("خطأ في جلب الغياب: $e"); // عشان تشوف الخطأ في الـ Console
+    print("خطأ في جلب الغياب: $e");
     if (mounted) {
       setState(() => _isLoadingAttendance = false);
     }
@@ -761,7 +770,12 @@ void initState() {
             child: const Icon(Icons.history_rounded, color: Colors.white, size: 20),
           ),
           onPressed: () {
-            // TODO: Show attendance history
+              Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const AttendanceCalendarScreen(),
+    ),
+  );
           },
         ),
         IconButton(
@@ -1175,6 +1189,7 @@ void initState() {
   Widget _buildAbsentEmployeeCard(Employee emp, bool isDark, int index) {
     final isSaved = _savedAbsentIds.contains(emp.id);
     final isNew = !_savedAbsentIds.contains(emp.id);
+    final isInactive = !emp.status; // 👈 جديد - هل الموظف متوقف؟
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -1239,59 +1254,79 @@ void initState() {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                emp.empName,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            // Status Badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSaved
-                                    ? const Color(0xFF10B981).withOpacity(0.1)
-                                    : const Color(0xFFF59E0B).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    isSaved
-                                        ? Icons.cloud_done_rounded
-                                        : Icons.add_circle_rounded,
-                                    size: 12,
-                                    color: isSaved
-                                        ? const Color(0xFF10B981)
-                                        : const Color(0xFFF59E0B),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    isSaved ? "محفوظ" : "جديد",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: isSaved
-                                          ? const Color(0xFF10B981)
-                                          : const Color(0xFFF59E0B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+  children: [
+    Expanded(
+      child: Text(
+        emp.empName,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    ),
+    // 👈 Badge الموظف المتوقف
+    if (isInactive)
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        margin: const EdgeInsets.only(left: 6),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.person_off_rounded, size: 12, color: Colors.grey[600]),
+            const SizedBox(width: 4),
+            Text(
+              "متوقف",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
+    // Status Badge (محفوظ/جديد)
+    Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: isSaved
+            ? const Color(0xFF10B981).withOpacity(0.1)
+            : const Color(0xFFF59E0B).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isSaved ? Icons.cloud_done_rounded : Icons.add_circle_rounded,
+            size: 12,
+            color: isSaved
+                ? const Color(0xFF10B981)
+                : const Color(0xFFF59E0B),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isSaved ? "محفوظ" : "جديد",
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: isSaved
+                  ? const Color(0xFF10B981)
+                  : const Color(0xFFF59E0B),
+            ),
+          ),
+        ],
+      ),
+    ),
+  ],
+),
                         const SizedBox(height: 4),
                         Text(
                           "${emp.job ?? '---'} • ${emp.branchName ?? '---'}",

@@ -17,6 +17,7 @@ import 'employee_attendance_screen.dart';
 import 'AttendanceHistoryScreen.dart';
 import 'expenses_list_screen.dart';
 import 'section_screens_page.dart'; // هنعمله بعدين
+import 'change_password_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -1460,7 +1461,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             crossAxisCount: 2,
             crossAxisSpacing: 14,
             mainAxisSpacing: 14,
-            childAspectRatio: 1.1,
+            childAspectRatio: .95,
           ),
           itemCount: availableSections.length,
           itemBuilder: (context, index) {
@@ -1482,166 +1483,106 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSectionCard({
-    required AppSection section,
-    required int screensCount,
-    required bool isDark,
-    required int index,
-  }) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 500 + (index * 80)),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(opacity: value, child: child),
-        );
+Widget _buildSectionCard({
+  required AppSection section,
+  required int screensCount,
+  required bool isDark,
+  required int index,
+}) {
+  return TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: Duration(milliseconds: 500 + (index * 80)),
+    curve: Curves.easeOutCubic,
+    builder: (context, value, child) {
+      return Transform.translate(
+        offset: Offset(0, 30 * (1 - value)),
+        child: Opacity(opacity: value, child: child),
+      );
+    },
+    child: GestureDetector(
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        _openSectionPage(section);
       },
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.mediumImpact();
-          _openSectionPage(section);
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: section.gradient[0].withOpacity(0.2),
-              width: 1,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: section.gradient[0].withOpacity(0.15),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: section.gradient[0].withOpacity(0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: section.gradient[0].withOpacity(0.15),
-                blurRadius: 15,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Icon
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: section.gradient,
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: section.gradient[0].withOpacity(0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      section.icon,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-
-                  // Screens Count Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: section.gradient[0].withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "$screensCount",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: section.gradient[0],
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.apps_rounded,
-                          color: section.gradient[0],
-                          size: 12,
-                        ),
-                      ],
-                    ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Icon with gradient background (أكبر وفي النص)
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: section.gradient,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: section.gradient[0].withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
-
-              const Spacer(),
-
-              // Title
-              Flexible( // 👈 إضافة Flexible
-                child: FittedBox( // 👈 عشان لو الاسم طويل يصغر الخط
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    section.title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                ),
+              child: Icon(
+                section.icon,
+                color: Colors.white,
+                size: 32,
               ),
-              const SizedBox(height: 4),
+            ),
 
-              // Subtitle
-              Text(
-                section.subtitle,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark ? Colors.grey[500] : Colors.grey[600],
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 16),
+
+            // Title
+            Text(
+              section.title,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            
+            const SizedBox(height: 6),
 
-              const SizedBox(height: 8),
-
-              // Arrow indicator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: section.gradient[0].withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.arrow_forward_rounded,
-                      color: section.gradient[0],
-                      size: 14,
-                    ),
-                  ),
-                ],
+            // Subtitle
+            Text(
+              section.subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.grey[500] : Colors.grey[600],
               ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 💵 FINANCIAL OVERVIEW
@@ -2249,175 +2190,262 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // 📱 DRAWER
   // ═══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildDrawer(AuthProvider auth, dynamic user, bool isDark) {
-    return Drawer(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0F0F1E) : Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            bottomLeft: Radius.circular(30),
-          ),
+Widget _buildDrawer(AuthProvider auth, dynamic user, bool isDark) {
+  return Drawer(
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+    child: Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F0F1E) : Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          bottomLeft: Radius.circular(30),
         ),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(
-                24,
-                MediaQuery.of(context).padding.top + 30,
-                24,
-                30,
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              24,
+              MediaQuery.of(context).padding.top + 30,
+              24,
+              30,
+            ),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFA855F7)],
               ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFA855F7)],
-                ),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(50),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Avatar
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    child: Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Center(
-                        child: Text(
-                          _getInitials(user?.fullName ?? "م"),
-                          style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF6366F1),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    user?.fullName ?? "مستخدم",
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.verified_rounded, color: Colors.white, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          user?.role ?? "مستخدم",
-                          style: const TextStyle(fontSize: 13, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                bottomRight: Radius.circular(50),
               ),
             ),
-
-            // Menu Items
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                children: [
-                  _buildDrawerItem(
-                    icon: Icons.dashboard_rounded,
-                    title: "لوحة التحكم",
-                    color: const Color(0xFF6366F1),
-                    isDark: isDark,
-                    isSelected: true,
-                    onTap: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Dynamic Sections
-                  ...AppSections.all.where((section) {
-                    return section.permissionKeys.any((key) => auth.canView(key));
-                  }).map((section) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: _buildDrawerItem(
-                        icon: section.icon,
-                        title: section.title,
-                        color: section.gradient[0],
-                        isDark: isDark,
-                        onTap: () {
-                          Navigator.pop(context);
-                          _openSectionPage(section);
-                        },
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-
-            // Logout Button
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: GestureDetector(
-                onTap: () => _showLogoutDialog(auth, isDark),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Avatar
+                Container(
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.logout_rounded, color: Colors.white, size: 20),
-                      SizedBox(width: 10),
-                      Text(
-                        "تسجيل الخروج",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
+                  child: Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _getInitials(user?.fullName ?? "م"),
+                        style: const TextStyle(
+                          fontSize: 26,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF6366F1),
                         ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  user?.fullName ?? "مستخدم",
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.verified_rounded, color: Colors.white, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        user?.role ?? "مستخدم",
+                        style: const TextStyle(fontSize: 13, color: Colors.white),
                       ),
                     ],
                   ),
                 ),
+              ],
+            ),
+          ),
+
+          // Menu Items
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              children: [
+                // لوحة التحكم
+                _buildDrawerItem(
+                  icon: Icons.dashboard_rounded,
+                  title: "لوحة التحكم",
+                  color: const Color(0xFF6366F1),
+                  isDark: isDark,
+                  isSelected: true,
+                  onTap: () => Navigator.pop(context),
+                ),
+                
+                const SizedBox(height: 20),
+
+                // ═══════════════════════════════════════════════════════
+                // عنوان الأقسام
+                // ═══════════════════════════════════════════════════════
+                _buildDrawerSectionTitle("الأقسام", isDark),
+                const SizedBox(height: 10),
+                
+                // Dynamic Sections
+                ...AppSections.all.where((section) {
+                  return section.permissionKeys.any((key) => auth.canView(key));
+                }).map((section) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: _buildDrawerItem(
+                      icon: section.icon,
+                      title: section.title,
+                      color: section.gradient[0],
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _openSectionPage(section);
+                      },
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 20),
+
+                // ═══════════════════════════════════════════════════════
+                // عنوان الإعدادات
+                // ═══════════════════════════════════════════════════════
+                _buildDrawerSectionTitle("الإعدادات", isDark),
+                const SizedBox(height: 10),
+
+                // تغيير كلمة المرور
+                _buildDrawerItem(
+                  icon: Icons.lock_reset_rounded,
+                  title: "تغيير كلمة المرور",
+                  color: const Color(0xFF8B5CF6),
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ChangePasswordScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Logout Button
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: GestureDetector(
+              onTap: () => _showLogoutDialog(auth, isDark),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFEF4444).withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.logout_rounded, color: Colors.white, size: 20),
+                    SizedBox(width: 10),
+                    Text(
+                      "تسجيل الخروج",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+
+Widget _buildDrawerSectionTitle(String title, bool isDark) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    child: Row(
+      children: [
+        Container(
+          width: 4,
+          height: 16,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+            ),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.grey[500] : Colors.grey[600],
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildDrawerItem({
     required IconData icon,

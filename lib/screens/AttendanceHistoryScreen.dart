@@ -606,219 +606,229 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen>
   }
 
   // 📋 History Card
-  Widget _buildHistoryCard(dynamic item, bool isDark, int index) {
-    final dateStr = item['date']?.toString().split('T')[0] ?? '---';
-    final absentCount = item['absentCount'] ?? 0;
-    final userAdd = item['userAdd'] ?? '---';
+  // 📋 History Card
+Widget _buildHistoryCard(dynamic item, bool isDark, int index) {
+  final dateStr = item['date']?.toString().split('T')[0] ?? '---';
+  final absentCount = item['absentCount'] ?? 0;
+  final userAdd = item['userAdd'] ?? '---';
 
-    // Format date
-    String formattedDate = dateStr;
-    String dayName = '';
-    try {
-      final date = DateTime.parse(dateStr);
-      final dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-      dayName = dayNames[date.weekday % 7];
-      formattedDate = DateFormat('d MMMM yyyy', 'ar').format(date);
-    } catch (e) {}
+  // Format date
+  String formattedDate = dateStr;
+  String dayName = '';
+  try {
+    final date = DateTime.parse(dateStr);
+    final dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    dayName = dayNames[date.weekday % 7];
+    formattedDate = DateFormat('d MMMM yyyy', 'ar').format(date);
+  } catch (e) {}
 
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 400 + (index * 50)),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(opacity: value, child: child),
-        );
-      },
-      child: GestureDetector(
-        onTap: () {
-          // الانتقال لشاشة تسجيل الغياب مع التاريخ المحدد
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => EmployeeAttendanceScreen(initialDate: dateStr),
-            ),
-          ).then((_) => _loadHistory());
-        },
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF252836) : Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFEF4444).withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+  return TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: Duration(milliseconds: 400 + (index * 50)),
+    curve: Curves.easeOutCubic,
+    builder: (context, value, child) {
+      return Transform.translate(
+        offset: Offset(0, 30 * (1 - value)),
+        child: Opacity(opacity: value, child: child),
+      );
+    },
+    child: GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EmployeeAttendanceScreen(initialDate: dateStr),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: Stack(
-              children: [
-                // Side Accent
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 5,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          const Color(0xFFEF4444),
-                          const Color(0xFFEF4444).withOpacity(0.5),
-                        ],
-                      ),
+        ).then((_) => _loadHistory());
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF252836) : Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFEF4444).withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(
+            children: [
+              // Side Accent
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: 5,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFFEF4444),
+                        const Color(0xFFEF4444).withOpacity(0.5),
+                      ],
                     ),
                   ),
                 ),
+              ),
 
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      // Date Box
-                      Container(
-                        width: 60,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              dateStr.split('-')[2],
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFEF4444),
-                              ),
-                            ),
-                            Text(
-                              dayName,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                          ],
-                        ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    // Date Box
+                    Container(
+                      width: 55,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-
-                      const SizedBox(width: 14),
-
-                      // Info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              formattedDate,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
+                      child: Column(
+                        children: [
+                          Text(
+                            dateStr.split('-')[2],
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFEF4444),
                             ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                // Absent Count Badge
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEF4444).withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.person_off_rounded,
-                                        size: 14,
-                                        color: Color(0xFFEF4444),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        "$absentCount غائب",
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Color(0xFFEF4444),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                          ),
+                          Text(
+                            dayName,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            formattedDate,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          
+                          // Badges Row
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              // Absent Count Badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
                                 ),
-                                const SizedBox(width: 8),
-                                // User Badge
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.person_rounded,
-                                        size: 14,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.person_off_rounded,
+                                      size: 12,
+                                      color: Color(0xFFEF4444),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "$absentCount غائب",
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFFEF4444),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // User Badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.person_rounded,
+                                      size: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      userAdd.length > 10 
+                                          ? '${userAdd.substring(0, 10)}...' 
+                                          : userAdd,
+                                      style: TextStyle(
+                                        fontSize: 11,
                                         color: Colors.grey[600],
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        userAdd,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
+                    ),
 
-                      // Arrow
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          color: Color(0xFFEF4444),
-                          size: 16,
-                        ),
+                    const SizedBox(width: 8),
+
+                    // Arrow
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
-                  ),
+                      child: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Color(0xFFEF4444),
+                        size: 14,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // 📭 Empty State
   Widget _buildEmptyState(bool isDark) {

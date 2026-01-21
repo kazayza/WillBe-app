@@ -293,4 +293,25 @@ class ApiService {
     }
     return "";
   }
+
+// ==================== CHANGE PASSWORD ====================
+
+/// تغيير كلمة المرور
+static Future<Map<String, dynamic>> changePassword({
+  required int userId,
+  required String currentPassword,
+  required String newPassword,
+}) async {
+  try {
+    final response = await post('users/change-password', {
+      'userId': userId,
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    });
+    return response;
+  } catch (e) {
+    debugPrint('Error changing password: $e');
+    throw Exception('فشل تغيير كلمة المرور');
+  }
+}
 }
