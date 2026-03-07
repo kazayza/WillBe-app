@@ -715,7 +715,7 @@ class _ExpensesListScreenState extends State<ExpensesListScreen>
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              "${NumberFormat('#,##0').format(amount)} ج.م",
+              "${NumberFormat('#,##0.00').format(amount)} ج.م",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -1602,7 +1602,7 @@ class _ExpensesListScreenState extends State<ExpensesListScreen>
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    "-${NumberFormat('#,##0').format(amount)} ج.م",
+                                    "-${NumberFormat('#,##0.00').format(amount)} ج.م",
                                     style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
@@ -1826,7 +1826,7 @@ class _ExpensesListScreenState extends State<ExpensesListScreen>
                       ),
                     ),
                     child: Text(
-                      "${NumberFormat('#,##0').format(amount)} ج.م",
+                      "${NumberFormat('#,##0.00').format(amount)} ج.م",
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -2068,7 +2068,7 @@ class _ExpensesListScreenState extends State<ExpensesListScreen>
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          "${NumberFormat('#,##0').format(amount)} ج.م",
+                          "${NumberFormat('#,##0.00').format(amount)} ج.م",
                           style: const TextStyle(
                             color: Color(0xFFEF5350),
                             fontWeight: FontWeight.bold,

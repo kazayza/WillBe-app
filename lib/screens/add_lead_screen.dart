@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 
@@ -23,8 +24,10 @@ class _AddLeadScreenState extends State<AddLeadScreen>
   final _nextFollowUpController = TextEditingController();
 
   String? _selectedSource;
+  int? _selectedSourceId;
   String? _selectedProgram;
   int? _selectedBranchId;
+  int? _selectedAssignedTo;
   DateTime? _selectedNextFollowUp;
 
   bool _isSaving = false;
@@ -32,15 +35,11 @@ class _AddLeadScreenState extends State<AddLeadScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  final List<String> _sources = [
-    'Facebook',
-    'Instagram',
-    'WhatsApp',
-    'TikTok',
-    'Google',
-    'Friend',
-    'Other',
-  ];
+  List<Map<String, dynamic>> _sources = [];
+  bool _isLoadingSources = false;
+
+  List<Map<String, dynamic>> _employees = [];
+  bool _isLoadingEmployees = false;
 
   final List<String> _programs = [
     'Baby Class',
@@ -51,24 +50,23 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     'Summer Camp',
     'Winter Camp',
     'Courses',
+    'رحلات',
   ];
 
   List<Map<String, dynamic>> _branches = [];
   bool _isLoadingBranches = false;
   bool _branchesLoadError = false;
 
-  // حساب نسبة الاكتمال
   double get _completionPercentage {
     int filled = 0;
-    int total = 6;
-
+    int total = 7;
     if (_nameController.text.isNotEmpty) filled++;
     if (_phoneController.text.isNotEmpty) filled++;
     if (_selectedSource != null) filled++;
     if (_selectedProgram != null) filled++;
     if (_selectedBranchId != null) filled++;
+    if (_selectedAssignedTo != null) filled++;
     if (_selectedNextFollowUp != null) filled++;
-
     return filled / total;
   }
 
@@ -77,6 +75,8 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     super.initState();
     _setupAnimation();
     _loadBranches();
+    _loadSources();
+    _loadEmployees();
   }
 
   void _setupAnimation() {
@@ -90,26 +90,59 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     _animationController.forward();
   }
 
+  Future<void> _loadSources() async {
+    setState(() => _isLoadingSources = true);
+    try {
+      final data = await ApiService.get('lead-sources');
+      if (mounted && data is List) {
+        setState(() {
+          _sources = data.map<Map<String, dynamic>>((s) => {
+            'id': s['SourceID'],
+            'name': s['SourceName'],
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading sources: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingSources = false);
+    }
+  }
+
+  Future<void> _loadEmployees() async {
+    setState(() => _isLoadingEmployees = true);
+    try {
+      final data = await ApiService.get('employees');
+      if (mounted && data is List) {
+        setState(() {
+          _employees = data.map<Map<String, dynamic>>((e) => {
+            'id': e['ID'],
+            'name': e['empName'] ?? '${e['FirstName'] ?? ''} ${e['LastName'] ?? ''}',
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading employees: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingEmployees = false);
+    }
+  }
+
   Future<void> _loadBranches() async {
     setState(() {
       _isLoadingBranches = true;
       _branchesLoadError = false;
     });
-
     try {
       final data = await ApiService.get('general/branches');
       if (mounted && data is List) {
-        _branches = data
-            .map<Map<String, dynamic>>((b) => {
-                  'id': b['IDbranch'],
-                  'name': b['branchName'],
-                })
-            .toList();
+        _branches = data.map<Map<String, dynamic>>((b) => {
+          'id': b['IDbranch'],
+          'name': b['branchName'],
+        }).toList();
       }
     } catch (e) {
-      if (mounted) {
-        _branchesLoadError = true;
-      }
+      if (mounted) _branchesLoadError = true;
     } finally {
       if (mounted) {
         _isLoadingBranches = false;
@@ -133,7 +166,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
   Future<void> _pickNextFollowUpDate() async {
     final now = DateTime.now();
     final initial = _selectedNextFollowUp ?? now.add(const Duration(days: 1));
-
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -144,43 +176,31 @@ class _AddLeadScreenState extends State<AddLeadScreen>
         return Theme(
           data: Theme.of(ctx).copyWith(
             colorScheme: isDark
-                ? const ColorScheme.dark(
-                    primary: Color(0xFF6366F1),
-                    surface: Color(0xFF252836),
-                  )
-                : const ColorScheme.light(
-                    primary: Color(0xFF6366F1),
-                  ),
-            dialogBackgroundColor:
-                isDark ? const Color(0xFF252836) : Colors.white,
+                ? const ColorScheme.dark(primary: Color(0xFF6366F1), surface: Color(0xFF252836))
+                : const ColorScheme.light(primary: Color(0xFF6366F1)),
+            dialogBackgroundColor: isDark ? const Color(0xFF252836) : Colors.white,
           ),
           child: child!,
         );
       },
     );
-
     if (pickedDate != null) {
-      _selectedNextFollowUp = DateTime(
-        pickedDate.year,
-        pickedDate.month,
-        pickedDate.day,
-        10,
-      );
-
-      _nextFollowUpController.text =
-          DateFormat('yyyy/MM/dd').format(_selectedNextFollowUp!);
-
+      _selectedNextFollowUp = DateTime(pickedDate.year, pickedDate.month, pickedDate.day, 10);
+      _nextFollowUpController.text = DateFormat('yyyy/MM/dd').format(_selectedNextFollowUp!);
       setState(() {});
     }
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isSaving = true);
 
     final int? childAge = int.tryParse(_childAgeController.text.trim());
     final String email = _emailController.text.trim();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userAdd = authProvider.user?.fullName ?? 'Unknown User';
+    //final clientTime = DateTime.now().toIso8601String();
+    final clientTime = DateTime.now().toString();
 
     final data = {
       'fullName': _nameController.text.trim(),
@@ -188,18 +208,19 @@ class _AddLeadScreenState extends State<AddLeadScreen>
       'email': email.isEmpty ? null : email,
       'childAge': childAge,
       'source': _selectedSource ?? 'Direct',
+      'sourceId': _selectedSourceId,
       'interestedProgram': _selectedProgram,
       'branchId': _selectedBranchId,
+      'assignedTo': _selectedAssignedTo,
       'nextFollowUp': _selectedNextFollowUp?.toIso8601String(),
       'notes': _notesController.text.trim(),
+      'userAdd': userAdd,
+      'clientTime': clientTime,
     };
 
     try {
       await ApiService.post('leads', data);
-
-      if (mounted) {
-        _showSuccessDialog();
-      }
+      if (mounted) _showSuccessDialog();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -213,15 +234,12 @@ class _AddLeadScreenState extends State<AddLeadScreen>
             ),
             backgroundColor: const Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             margin: const EdgeInsets.all(16),
           ),
         );
       }
     }
-
     if (mounted) setState(() => _isSaving = false);
   }
 
@@ -233,9 +251,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
         final isDark = Provider.of<ThemeProvider>(ctx, listen: false).isDark;
         return AlertDialog(
           backgroundColor: isDark ? const Color(0xFF252836) : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -245,39 +261,19 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                   color: const Color(0xFF10B981).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: Color(0xFF10B981),
-                  size: 60,
-                ),
+                child: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 60),
               ),
               const SizedBox(height: 20),
-              Text(
-                'تم بنجاح! 🎯',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
+              Text('تم بنجاح! 🎯', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
               const SizedBox(height: 10),
-              Text(
-                'تم تسجيل العميل المحتمل بنجاح',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-                textAlign: TextAlign.center,
-              ),
+              Text('تم تسجيل العميل المحتمل بنجاح', style: TextStyle(fontSize: 14, color: Colors.grey[500]), textAlign: TextAlign.center),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF10B981), Color(0xFF059669)],
-                    ),
+                    gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)]),
                   ),
                   child: ElevatedButton(
                     onPressed: () {
@@ -288,18 +284,9 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text(
-                      'تم',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: const Text('تم', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
                 ),
               ),
@@ -309,6 +296,189 @@ class _AddLeadScreenState extends State<AddLeadScreen>
       },
     );
   }
+
+  Widget _buildDropdown({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+    bool isLoading = false,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      items: items.map((item) {
+        return DropdownMenuItem<String>(
+          value: item,
+          child: Text(item, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+        );
+      }).toList(),
+      onChanged: onChanged,
+      icon: isLoading 
+          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+          : Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey[500]),
+      dropdownColor: isDark ? const Color(0xFF252836) : Colors.white,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey[500]),
+        prefixIcon: Container(
+          margin: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: color, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+    );
+  }
+
+  Widget _buildSourceDropdown(bool isDark) {
+  if (_isLoadingSources) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+          const SizedBox(width: 12),
+          Text("جاري تحميل المصادر...", style: TextStyle(color: Colors.grey[500])),
+        ],
+      ),
+    );
+  }
+
+  return DropdownButtonFormField<int>(
+    value: _selectedSourceId,
+    items: _sources.map((source) => DropdownMenuItem<int>(
+      value: source['id'],
+      child: Text(source['name'], style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+    )).toList(),
+    onChanged: (sourceId) {
+      setState(() {
+        _selectedSourceId = sourceId;
+        _selectedSource = _sources.firstWhere((s) => s['id'] == sourceId, orElse: () => {'name': 'Direct'})['name'];
+      });
+    },
+    decoration: InputDecoration(
+      labelText: "مصدر المعرفة",
+      labelStyle: TextStyle(color: Colors.grey[500]),
+      prefixIcon: Container(
+        margin: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3B82F6).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.campaign_rounded, color: Color(0xFF3B82F6), size: 20),
+      ),
+      filled: true,
+      fillColor: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    ),
+    dropdownColor: isDark ? const Color(0xFF252836) : Colors.white,
+    icon: Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey[500]),
+  );
+}
+
+  Widget _buildEmployeeDropdown(bool isDark) {
+  if (_isLoadingEmployees) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+          const SizedBox(width: 12),
+          Expanded( // ✅ أضف Expanded هنا
+            child: Text(
+              "جاري تحميل الموظفين...",
+              style: TextStyle(color: Colors.grey[500]),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  return DropdownButtonFormField<int>(
+    value: _selectedAssignedTo,
+    items: _employees.map((emp) => DropdownMenuItem<int>(
+      value: emp['id'],
+      child: Container( // ✅ لف الـ Text في Container
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.5), // ✅ حدد عرض أقصى
+        child: Text(
+          emp['name'],
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+          overflow: TextOverflow.ellipsis, // ✅ أضف overflow
+          maxLines: 1, // ✅ سطر واحد بس
+        ),
+      ),
+    )).toList(),
+    onChanged: (val) => setState(() => _selectedAssignedTo = val),
+    isExpanded: true, // ✅ أضف دي مهمة جداً
+    decoration: InputDecoration(
+      labelText: "الموظف المسؤول",
+      labelStyle: TextStyle(color: Colors.grey[500]),
+      prefixIcon: Container(
+        margin: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF8B5CF6).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.person_rounded, color: Color(0xFF8B5CF6), size: 20),
+      ),
+      filled: true,
+      fillColor: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    ),
+    dropdownColor: isDark ? const Color(0xFF252836) : Colors.white,
+    icon: Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey[500]),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -320,15 +490,8 @@ class _AddLeadScreenState extends State<AddLeadScreen>
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // 🎨 App Bar
           _buildSliverAppBar(isDark),
-
-          // 📊 Progress Indicator
-          SliverToBoxAdapter(
-            child: _buildProgressIndicator(isDark),
-          ),
-
-          // 📝 Form Content
+          SliverToBoxAdapter(child: _buildProgressIndicator(isDark)),
           SliverToBoxAdapter(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -338,7 +501,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                   key: _formKey,
                   child: Column(
                     children: [
-                      // البيانات الأساسية
                       _buildAnimatedCard(
                         index: 0,
                         child: _buildCard(
@@ -353,8 +515,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                               icon: Icons.person_rounded,
                               color: const Color(0xFF6366F1),
                               isDark: isDark,
-                              validator: (v) =>
-                                  v == null || v.isEmpty ? "مطلوب" : null,
+                              validator: (v) => v == null || v.isEmpty ? "مطلوب" : null,
                               onChanged: (_) => setState(() {}),
                             ),
                             const SizedBox(height: 14),
@@ -365,8 +526,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                               color: const Color(0xFF10B981),
                               isDark: isDark,
                               keyboardType: TextInputType.phone,
-                              validator: (v) =>
-                                  v == null || v.isEmpty ? "مطلوب" : null,
+                              validator: (v) => v == null || v.isEmpty ? "مطلوب" : null,
                               onChanged: (_) => setState(() {}),
                             ),
                             const SizedBox(height: 14),
@@ -390,10 +550,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // الاهتمام والمتابعة
                       _buildAnimatedCard(
                         index: 1,
                         child: _buildCard(
@@ -402,11 +559,21 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                           icon: Icons.trending_up_rounded,
                           color: const Color(0xFFF59E0B),
                           children: [
-                            _buildSourceSelector(isDark),
+                            _buildSourceDropdown(isDark),
                             const SizedBox(height: 14),
-                            _buildProgramSelector(isDark),
+                            _buildDropdown(
+                              label: "البرنامج المهتم به",
+                              icon: Icons.school_rounded,
+                              color: const Color(0xFF10B981),
+                              isDark: isDark,
+                              value: _selectedProgram,
+                              items: _programs,
+                              onChanged: (val) => setState(() => _selectedProgram = val),
+                            ),
                             const SizedBox(height: 14),
                             _buildBranchDropdown(isDark),
+                            const SizedBox(height: 14),
+                            _buildEmployeeDropdown(isDark),
                             const SizedBox(height: 14),
                             _buildDatePicker(isDark),
                             const SizedBox(height: 14),
@@ -421,12 +588,8 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
-                      // زر الحفظ
                       _buildSaveButton(isDark),
-
                       const SizedBox(height: 30),
                     ],
                   ),
@@ -439,7 +602,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     );
   }
 
-  // 🎨 Sliver App Bar
   Widget _buildSliverAppBar(bool isDark) {
     return SliverAppBar(
       expandedHeight: 180,
@@ -454,26 +616,10 @@ class _AddLeadScreenState extends State<AddLeadScreen>
             color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.white, size: 18),
+          child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
         ),
-        onPressed: () => _showExitConfirmation(isDark),
+        onPressed: () => Navigator.pop(context),
       ),
-      actions: [
-        IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.refresh_rounded,
-                color: Colors.white, size: 20),
-          ),
-          onPressed: _resetForm,
-        ),
-        const SizedBox(width: 8),
-      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: const BoxDecoration(
@@ -485,7 +631,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
           ),
           child: Stack(
             children: [
-              // Decorative circles
               Positioned(
                 right: -50,
                 top: -50,
@@ -498,20 +643,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                   ),
                 ),
               ),
-              Positioned(
-                left: -30,
-                bottom: 20,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
-                  ),
-                ),
-              ),
-
-              // Content
               Positioned(
                 bottom: 40,
                 left: 20,
@@ -527,31 +658,14 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          child: const Icon(
-                            Icons.person_add_alt_1_rounded,
-                            color: Colors.white,
-                            size: 28,
-                          ),
+                          child: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 28),
                         ),
                         const SizedBox(width: 15),
                         const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "عميل محتمل جديد",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              "أضف بيانات العميل المحتمل",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
+                            Text("عميل محتمل جديد", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                            Text("أضف بيانات العميل المحتمل", style: TextStyle(color: Colors.white70, fontSize: 14)),
                           ],
                         ),
                       ],
@@ -566,7 +680,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     );
   }
 
-  // 📊 Progress Indicator
   Widget _buildProgressIndicator(bool isDark) {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -595,21 +708,10 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                       color: const Color(0xFF6366F1).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
-                      Icons.pie_chart_rounded,
-                      color: Color(0xFF6366F1),
-                      size: 18,
-                    ),
+                    child: const Icon(Icons.pie_chart_rounded, color: Color(0xFF6366F1), size: 18),
                   ),
                   const SizedBox(width: 10),
-                  Text(
-                    "نسبة الاكتمال",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  Text("نسبة الاكتمال", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87)),
                 ],
               ),
               Container(
@@ -618,14 +720,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                   color: _getProgressColor(_completionPercentage).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  "${(_completionPercentage * 100).toInt()}%",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: _getProgressColor(_completionPercentage),
-                  ),
-                ),
+                child: Text("${(_completionPercentage * 100).toInt()}%", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _getProgressColor(_completionPercentage))),
               ),
             ],
           ),
@@ -636,9 +731,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
               value: _completionPercentage,
               minHeight: 8,
               backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _getProgressColor(_completionPercentage),
-              ),
+              valueColor: AlwaysStoppedAnimation<Color>(_getProgressColor(_completionPercentage)),
             ),
           ),
         ],
@@ -653,7 +746,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     return const Color(0xFF10B981);
   }
 
-  // 🎴 Animated Card
   Widget _buildAnimatedCard({required int index, required Widget child}) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -669,7 +761,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     );
   }
 
-  // 📦 Card
   Widget _buildCard({
     required bool isDark,
     required String title,
@@ -693,7 +784,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
         borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
-            // Side Accent
             Positioned(
               right: 0,
               top: 0,
@@ -709,8 +799,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                 ),
               ),
             ),
-
-            // Content
             Padding(
               padding: const EdgeInsets.all(18),
               child: Column(
@@ -727,14 +815,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                         child: Icon(icon, color: color, size: 22),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
+                      Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                     ],
                   ),
                   const SizedBox(height: 18),
@@ -748,7 +829,6 @@ class _AddLeadScreenState extends State<AddLeadScreen>
     );
   }
 
-  // 📝 Text Field
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -766,10 +846,7 @@ class _AddLeadScreenState extends State<AddLeadScreen>
       keyboardType: keyboardType,
       maxLines: maxLines,
       onChanged: onChanged,
-      style: TextStyle(
-        color: isDark ? Colors.white : Colors.black87,
-        fontSize: 15,
-      ),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: Colors.grey[500]),
@@ -784,227 +861,20 @@ class _AddLeadScreenState extends State<AddLeadScreen>
         ),
         filled: true,
         fillColor: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-          ),
+          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: color, width: 2),
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFEF4444)),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }
 
-  // 📱 Source Selector (Chips)
-  Widget _buildSourceSelector(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.campaign_rounded,
-                color: Color(0xFF3B82F6),
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              "مصدر المعرفة بالحضانة",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _sources.map((source) {
-            final isSelected = _selectedSource == source;
-            return GestureDetector(
-              onTap: () {
-                setState(() => _selectedSource = source);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF3B82F6)
-                      : (isDark
-                          ? const Color(0xFF1E1E2E)
-                          : Colors.grey[100]),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF3B82F6)
-                        : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                    width: isSelected ? 2 : 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getSourceIcon(source),
-                      size: 16,
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      source,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected
-                            ? Colors.white
-                            : (isDark ? Colors.grey[300] : Colors.grey[700]),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  IconData _getSourceIcon(String source) {
-    switch (source) {
-      case 'Facebook':
-        return Icons.facebook_rounded;
-      case 'Instagram':
-        return Icons.camera_alt_rounded;
-      case 'WhatsApp':
-        return Icons.message_rounded;
-      case 'TikTok':
-        return Icons.music_note_rounded;
-      case 'Google':
-        return Icons.search_rounded;
-      case 'Friend':
-        return Icons.people_rounded;
-      case 'Walk-in':
-        return Icons.directions_walk_rounded;
-      default:
-        return Icons.more_horiz_rounded;
-    }
-  }
-
-  // 📚 Program Selector
-  Widget _buildProgramSelector(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.school_rounded,
-                color: Color(0xFF10B981),
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              "البرنامج المهتم به",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _programs.map((program) {
-            final isSelected = _selectedProgram == program;
-            return GestureDetector(
-              onTap: () {
-                setState(() => _selectedProgram = program);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF10B981)
-                      : (isDark
-                          ? const Color(0xFF1E1E2E)
-                          : Colors.grey[100]),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF10B981)
-                        : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                    width: isSelected ? 2 : 1,
-                  ),
-                ),
-                child: Text(
-                  program,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected
-                        ? Colors.white
-                        : (isDark ? Colors.grey[300] : Colors.grey[700]),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  // 🏢 Branch Dropdown
   Widget _buildBranchDropdown(bool isDark) {
     if (_isLoadingBranches) {
       return Container(
@@ -1012,32 +882,13 @@ class _AddLeadScreenState extends State<AddLeadScreen>
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-          ),
+          border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF97316).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFFF97316),
-                ),
-              ),
-            ),
+            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
             const SizedBox(width: 12),
-            Text(
-              "جاري تحميل الفروع...",
-              style: TextStyle(color: Colors.grey[500]),
-            ),
+            Text("جاري تحميل الفروع...", style: TextStyle(color: Colors.grey[500])),
           ],
         ),
       );
@@ -1051,92 +902,27 @@ class _AddLeadScreenState extends State<AddLeadScreen>
           decoration: BoxDecoration(
             color: const Color(0xFFEF4444).withOpacity(0.1),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: const Color(0xFFEF4444).withOpacity(0.3),
-            ),
+            border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
           ),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  color: Color(0xFFEF4444),
-                  size: 20,
-                ),
-              ),
+              const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 20),
               const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "فشل تحميل الفروع",
-                  style: TextStyle(
-                    color: Colors.red[400],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.refresh_rounded,
-                color: Color(0xFFEF4444),
-                size: 20,
-              ),
+              Expanded(child: Text("فشل تحميل الفروع", style: TextStyle(color: Colors.red[400]))),
+              const Icon(Icons.refresh_rounded, color: Color(0xFFEF4444), size: 20),
             ],
           ),
         ),
       );
     }
 
-    if (_branches.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.location_off_rounded,
-                color: Colors.grey[500],
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              "لا يوجد فروع مسجلة",
-              style: TextStyle(color: Colors.grey[500]),
-            ),
-          ],
-        ),
-      );
-    }
-
     return DropdownButtonFormField<int>(
       value: _selectedBranchId,
-      items: _branches
-          .map(
-            (b) => DropdownMenuItem<int>(
-              value: b['id'] as int,
-              child: Text(b['name'] as String),
-            ),
-          )
-          .toList(),
-      onChanged: (val) {
-        setState(() => _selectedBranchId = val);
-      },
+      items: _branches.map((b) => DropdownMenuItem<int>(
+        value: b['id'] as int,
+        child: Text(b['name'] as String, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+      )).toList(),
+      onChanged: (val) => setState(() => _selectedBranchId = val),
       decoration: InputDecoration(
         labelText: "الفرع المفضّل",
         labelStyle: TextStyle(color: Colors.grey[500]),
@@ -1147,40 +933,26 @@ class _AddLeadScreenState extends State<AddLeadScreen>
             color: const Color(0xFFF97316).withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(
-            Icons.location_on_rounded,
-            color: Color(0xFFF97316),
-            size: 20,
-          ),
+          child: const Icon(Icons.location_on_rounded, color: Color(0xFFF97316), size: 20),
         ),
         filled: true,
         fillColor: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-          ),
+          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Color(0xFFF97316), width: 2),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
       dropdownColor: isDark ? const Color(0xFF252836) : Colors.white,
-      icon: Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: Colors.grey[500],
-      ),
+      icon: Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey[500]),
     );
   }
 
-  // 📅 Date Picker
   Widget _buildDatePicker(bool isDark) {
     return GestureDetector(
       onTap: _pickNextFollowUpDate,
@@ -1204,38 +976,23 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                 color: const Color(0xFF6366F1).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.event_note_rounded,
-                color: Color(0xFF6366F1),
-                size: 20,
-              ),
+              child: const Icon(Icons.event_note_rounded, color: Color(0xFF6366F1), size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "ميعاد المتابعة الجاية",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
-                  ),
+                  Text("ميعاد المتابعة الجاية", style: TextStyle(fontSize: 12, color: Colors.grey[500])),
                   const SizedBox(height: 4),
                   Text(
                     _selectedNextFollowUp != null
-                        ? DateFormat('EEEE, d MMMM yyyy', 'ar')
-                            .format(_selectedNextFollowUp!)
+                        ? DateFormat('EEEE, d MMMM yyyy', 'ar').format(_selectedNextFollowUp!)
                         : "اختر التاريخ (اختياري)",
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: _selectedNextFollowUp != null
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      color: _selectedNextFollowUp != null
-                          ? (isDark ? Colors.white : Colors.black87)
-                          : Colors.grey[500],
+                      fontWeight: _selectedNextFollowUp != null ? FontWeight.w600 : FontWeight.normal,
+                      color: _selectedNextFollowUp != null ? (isDark ? Colors.white : Colors.black87) : Colors.grey[500],
                     ),
                   ),
                 ],
@@ -1251,30 +1008,18 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                 },
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.close_rounded,
-                    size: 16,
-                    color: Colors.grey[500],
-                  ),
+                  decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1), shape: BoxShape.circle),
+                  child: Icon(Icons.close_rounded, size: 16, color: Colors.grey[500]),
                 ),
               )
             else
-              Icon(
-                Icons.calendar_today_rounded,
-                size: 18,
-                color: Colors.grey[500],
-              ),
+              Icon(Icons.calendar_today_rounded, size: 18, color: Colors.grey[500]),
           ],
         ),
       ),
     );
   }
 
-  // 💾 Save Button
   Widget _buildSaveButton(bool isDark) {
     return SizedBox(
       width: double.infinity,
@@ -1283,50 +1028,26 @@ class _AddLeadScreenState extends State<AddLeadScreen>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
-            colors: _isSaving
-                ? [Colors.grey, Colors.grey]
-                : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+            colors: _isSaving ? [Colors.grey, Colors.grey] : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
           ),
-          boxShadow: _isSaving
-              ? []
-              : [
-                  BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+          boxShadow: _isSaving ? [] : [
+            BoxShadow(color: const Color(0xFF6366F1).withOpacity(0.4), blurRadius: 15, offset: const Offset(0, 8)),
+          ],
         ),
         child: ElevatedButton(
           onPressed: _isSaving ? null : _save,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
           child: _isSaving
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white.withOpacity(0.8),
-                        strokeWidth: 2.5,
-                      ),
-                    ),
+                    SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white.withOpacity(0.8), strokeWidth: 2.5)),
                     const SizedBox(width: 12),
-                    const Text(
-                      "جاري الحفظ...",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    const Text("جاري الحفظ...", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ],
                 )
               : Row(
@@ -1334,210 +1055,15 @@ class _AddLeadScreenState extends State<AddLeadScreen>
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.person_add_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
+                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                      child: const Icon(Icons.person_add_rounded, color: Colors.white, size: 22),
                     ),
                     const SizedBox(width: 12),
-                    const Text(
-                      "حفظ العميل المحتمل",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    const Text("حفظ العميل المحتمل", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ],
                 ),
         ),
       ),
-    );
-  }
-
-  // 🔄 Reset Form
-  void _resetForm() {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        final isDark = Provider.of<ThemeProvider>(ctx, listen: false).isDark;
-        return AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF252836) : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.refresh_rounded,
-                  color: Color(0xFFF59E0B),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'إعادة تعيين',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'هل تريد مسح جميع البيانات المدخلة؟',
-            style: TextStyle(
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'إلغاء',
-                style: TextStyle(color: Colors.grey[500]),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFF59E0B), Color(0xFFF97316)],
-                ),
-              ),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  setState(() {
-                    _nameController.clear();
-                    _phoneController.clear();
-                    _emailController.clear();
-                    _childAgeController.clear();
-                    _notesController.clear();
-                    _nextFollowUpController.clear();
-                    _selectedSource = null;
-                    _selectedProgram = null;
-                    _selectedBranchId = null;
-                    _selectedNextFollowUp = null;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text(
-                  'مسح الكل',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // 🚪 Exit Confirmation
-  void _showExitConfirmation(bool isDark) {
-    // إذا كان الفورم فاضي، ارجع على طول
-    if (_nameController.text.isEmpty &&
-        _phoneController.text.isEmpty &&
-        _selectedSource == null &&
-        _selectedProgram == null) {
-      Navigator.pop(context);
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF252836) : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.exit_to_app_rounded,
-                  color: Color(0xFFEF4444),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'تجاهل التغييرات؟',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'لديك بيانات غير محفوظة. هل تريد الخروج بدون حفظ؟',
-            style: TextStyle(
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'البقاء',
-                style: TextStyle(color: Colors.grey[500]),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                ),
-              ),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text(
-                  'خروج',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }

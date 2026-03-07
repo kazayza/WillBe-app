@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 
 class CustomerInteractionsScreen extends StatefulWidget {
   final int customerId;
+  final int? leadId;
   final String customerName;
 
   const CustomerInteractionsScreen({
     super.key,
     required this.customerId,
+    this.leadId,
     required this.customerName,
   });
 
@@ -54,8 +57,12 @@ class _CustomerInteractionsScreenState extends State<CustomerInteractionsScreen>
     setState(() => _isLoading = true);
 
     try {
-      final data = await ApiService.get(
-          'interactions/customer/${widget.customerId}');
+         final endpoint = widget.leadId != null
+        ? 'interactions/lead/${widget.leadId}'
+        : 'interactions/customer/${widget.customerId}';
+
+    final data = await ApiService.get(endpoint);
+      
 
       if (mounted) {
         final interactions = data is List ? data : [];
@@ -1461,12 +1468,17 @@ class _CustomerInteractionsScreenState extends State<CustomerInteractionsScreen>
     String outcome,
   ) async {
     try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userName = authProvider.user?.fullName ?? 'Unknown';  
       await ApiService.post('interactions', {
-        'customerId': widget.customerId,
-        'type': type,
-        'subject': subject,
-        'details': details,
-        'outcome': outcome.isEmpty ? null : outcome,
+      'customerId': widget.customerId > 0 ? widget.customerId : null, // ✅ لو 0 نبعت null
+      'leadId': widget.leadId, // ✅ نبعت LeadID
+      'type': type,
+      'subject': subject,
+      'details': details,
+      'outcome': outcome.isEmpty ? null : outcome,
+      'userAdd': userName,
+      'clientTime': DateTime.now().toIso8601String(),
       });
 
       if (mounted) {

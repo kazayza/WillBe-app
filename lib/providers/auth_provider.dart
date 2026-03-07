@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/notification_service.dart';
 import '../models/user_model.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -32,6 +33,8 @@ class AuthProvider with ChangeNotifier {
             .map((e) => Permission.fromJson(e))
             .toList();
       }
+       // ✅ جلب FCM Token وإرساله للسيرفر
+      await _saveFcmToken();
 
       _isLoading = false;
       notifyListeners();
@@ -41,6 +44,19 @@ class AuthProvider with ChangeNotifier {
       _errorMessage = e.toString().replaceAll("Exception:", "").trim();
       notifyListeners();
       return false;
+    }
+  }
+
+    // ✅ دالة جديدة لحفظ FCM Token
+  Future<void> _saveFcmToken() async {
+    try {
+      String? token = await NotificationService.getToken();
+      if (token != null && _user != null) {
+        await ApiService.updateFcmToken(_user!.userId!, token);
+        print('FCM Token saved successfully');
+      }
+    } catch (e) {
+      print('Error saving FCM token: $e');
     }
   }
 

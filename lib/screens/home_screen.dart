@@ -13,12 +13,18 @@ import '../config/app_sections.dart';
 // Screens imports
 import 'login_screen.dart';
 import 'children_list_screen.dart';
+import 'child_form_screen.dart';
 import 'employees_list_screen.dart';
 import 'employee_attendance_screen.dart';
 import 'AttendanceHistoryScreen.dart';
 import 'expenses_list_screen.dart';
-import 'section_screens_page.dart'; // هنعمله بعدين
+import 'section_screens_page.dart'; 
 import 'change_password_screen.dart';
+import 'notifications_screen.dart';
+import 'tasks_list_screen.dart';
+import 'add_task_screen.dart';
+import 'add_expense_screen.dart';
+import 'general_income_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool isLoading = true;
   bool isRefreshing = false;
   int _pendingTasksCount = 0;
+  int _unreadNotificationsCount = 0;
   List<Map<String, dynamic>> _todayBirthdays = [];
   List<Map<String, dynamic>> _alerts = [];
 
@@ -56,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _setupAnimations();
     _setupScrollListener();
     _loadAllData();
+    _loadUnreadNotificationsCount();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -119,6 +127,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _fadeController.forward();
       _slideController.forward();
       UpdateService.checkForUpdate(context);
+    }
+  }
+
+   Future<void> _loadUnreadNotificationsCount() async {
+   final authProvider = Provider.of<AuthProvider>(context, listen: false);
+   final userId = authProvider.user?.userId;
+  
+   if (userId != null) {
+    final count = await ApiService.getUnreadNotificationsCount(userId);
+    setState(() {
+      _unreadNotificationsCount = count;
+    });
     }
   }
 
@@ -478,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         // Notifications
         _buildAppBarButton(
           icon: Icons.notifications_outlined,
-          badge: 3,
+          badge: _unreadNotificationsCount,
           onTap: () => _showNotificationsSheet(isDark),
           isScrolled: _isScrolled,
           isDark: isDark,
@@ -693,9 +713,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           if (_pendingTasksCount > 0)
             GestureDetector(
               onTap: () {
-                HapticFeedback.lightImpact();
-                // Navigate to tasks
-              },
+      HapticFeedback.lightImpact();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TasksListScreen()),
+      );
+    },
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -1288,9 +1311,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         title: "مهام معلقة",
         subtitle: "$_pendingTasksCount ${_pendingTasksCount == 1 ? 'مهمة' : 'مهام'} تحتاج متابعة",
         gradient: [const Color(0xFFF59E0B), const Color(0xFFFBBF24)],
-        onTap: () {
-          // Navigate to tasks
-        },
+       onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TasksListScreen()),
+      );
+    },
       ));
     }
 
@@ -2111,7 +2137,7 @@ Widget _buildSectionCard({
     // يمكنك تعديل هذا حسب الشاشات الموجودة عندك
 
     switch (formName) {
-      case 'frm_FullSearch':
+      case 'frm_Child':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ChildrenListScreen()),
@@ -2121,7 +2147,7 @@ Widget _buildSectionCard({
       case 'frm_ChildNew':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const ChildrenListScreen()),
+          MaterialPageRoute(builder: (_) => const ChildFormScreen()),
         );
         break;
 
@@ -2140,13 +2166,25 @@ Widget _buildSectionCard({
         break;
 
       case 'frm_expenses':
-      case 'frm_expSingle':
-        Navigator.push(
+      Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ExpensesListScreen()),
         );
         break;
-
+      case 'frm_expSingle':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+        );
+        break;
+       case 'frm_income':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const GeneralIncomeScreen()),
+        );
+        break;
+       
+       //GeneralIncomeScreen
       // أضف باقي الشاشات هنا...
 
       default:
@@ -2532,46 +2570,14 @@ Widget _buildDrawerSectionTitle(String title, bool isDark) {
     );
   }
 
-  void _showNotificationsSheet(bool isDark) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Icon(
-              Icons.notifications_outlined,
-              size: 50,
-              color: isDark ? Colors.grey[600] : Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "لا توجد إشعارات جديدة",
-              style: TextStyle(
-                fontSize: 16,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
+void _showNotificationsSheet(bool isDark) async {
+  await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+  );
+  // ✅ لما يرجع من صفحة الإشعارات، حدّث العدد
+  _loadUnreadNotificationsCount();
+}
 
   // ═══════════════════════════════════════════════════════════════════════════
   // 🔔 NOTIFICATIONS SHEET

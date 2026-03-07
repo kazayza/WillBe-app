@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "247696015334",
+    "project_id": "willbee-app",
+    "storage_bucket": "willbee-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247696015334:android:9f416e17b55acbcdf82027",
+        "android_client_info": {
+          "package_name": "com.willbee.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9DAW_bAMXhzUapiunVO0OzXGPzccrVP0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

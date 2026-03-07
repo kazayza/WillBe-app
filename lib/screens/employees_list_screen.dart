@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/employees_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
 import '../models/employee_model.dart';
 import 'employee_form_screen.dart';
 import 'employee_details_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EmployeesListScreen extends StatefulWidget {
   const EmployeesListScreen({super.key});
@@ -97,14 +99,271 @@ class _EmployeesListScreenState extends State<EmployeesListScreen>
     _animationController.dispose();
     super.dispose();
   }
+  
+  // ═══════════════════════════════════════════════════════
+// ✅ أضف الدوال هنا 👇
+// ═══════════════════════════════════════════════════════
 
+// ✅ دالة الاتصال
+Future<void> _makePhoneCall(String phoneNumber) async {
+  final Uri launchUri = Uri(
+    scheme: 'tel',
+    path: phoneNumber,
+  );
+  if (await canLaunchUrl(launchUri)) {
+    await launchUrl(launchUri);
+  }
+}
+
+// ✅ دالة الواتساب
+Future<void> _openWhatsApp(String phoneNumber) async {
+  String cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+  
+  if (cleanNumber.startsWith('0')) {
+    cleanNumber = '+2$cleanNumber';
+  } else if (!cleanNumber.startsWith('+')) {
+    cleanNumber = '+2$cleanNumber';
+  }
+  
+  final Uri whatsappUri = Uri.parse('https://wa.me/$cleanNumber');
+  
+  if (await canLaunchUrl(whatsappUri)) {
+    await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+  }
+}
+
+// ✅ Bottom Sheet للاتصال/واتساب
+void _showContactOptions(String phoneNumber, String empName, bool isDark) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF252836) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade400,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+          
+          // Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.contact_phone_rounded,
+                  color: Color(0xFF3B82F6),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'التواصل مع',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                    Text(
+                      empName,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Phone Number Display
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.black26 : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.phone_rounded,
+                  size: 18,
+                  color: Colors.grey.shade600,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  phoneNumber,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Action Buttons
+          Row(
+            children: [
+              // Call Button
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _makePhoneCall(phoneNumber);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF10B981).withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.call_rounded, color: Colors.white, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          'اتصال',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(width: 12),
+              
+              // WhatsApp Button
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _openWhatsApp(phoneNumber);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF25D366).withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chat_rounded, color: Colors.white, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          'واتساب',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: MediaQuery.of(ctx).padding.bottom + 10),
+        ],
+      ),
+    ),
+  );
+}
+
+// ✅ Widget مساعد لعرض معلومة واحدة (الفرع - الوظيفة)
+Widget _buildInfoRow({
+  required IconData icon,
+  required String text,
+  required Color color,
+  required bool isDark,
+}) {
+  return Row(
+    children: [
+      Icon(
+        icon,
+        size: 12,
+        color: color,
+      ),
+      const SizedBox(width: 4),
+      Expanded(
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? Colors.white70 : Colors.grey.shade700,
+            fontWeight: FontWeight.w500,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    ],
+  );
+}
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<EmployeesProvider>(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDark;
     final canAdd = Provider.of<AuthProvider>(context, listen: false)
-        .canAdd('شاشة الموظفين');
+        .canAdd('Employee List');
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF5F6FA),
@@ -646,265 +905,325 @@ class _EmployeesListScreenState extends State<EmployeesListScreen>
   }
 
   // 👤 Employee Card
-  Widget _buildEmployeeCard(Employee emp, bool isDark, int index) {
-    final statusColor = emp.status ? const Color(0xFF10B981) : const Color(0xFFEF4444);
-    final cardColor = emp.status ? const Color(0xFF3B82F6) : const Color(0xFF6B7280);
+Widget _buildEmployeeCard(Employee emp, bool isDark, int index) {
+  final statusColor = emp.status ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+  final cardColor = emp.status ? const Color(0xFF3B82F6) : const Color(0xFF6B7280);
 
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 400 + (index * 50)),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(opacity: value, child: child),
+  return TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: Duration(milliseconds: 400 + (index * 50)),
+    curve: Curves.easeOutCubic,
+    builder: (context, value, child) {
+      return Transform.translate(
+        offset: Offset(0, 30 * (1 - value)),
+        child: Opacity(opacity: value, child: child),
+      );
+    },
+    child: GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EmployeeDetailsScreen(employee: emp),
+          ),
         );
       },
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => EmployeeDetailsScreen(employee: emp),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF252836) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: cardColor.withOpacity(0.12),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
-          );
-        },
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF252836) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: cardColor.withOpacity(0.15),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Stack(
-              children: [
-                // Side Accent
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 5,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [cardColor, cardColor.withOpacity(0.5)],
-                      ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            children: [
+              // Side Accent
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: 5,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [cardColor, cardColor.withOpacity(0.5)],
                     ),
                   ),
                 ),
+              ),
 
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      // Avatar with Status
-                      Stack(
-                        children: [
-                          Hero(
-                            tag: 'emp_avatar_${emp.id}',
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    cardColor.withOpacity(0.2),
-                                    cardColor.withOpacity(0.1),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  emp.empName.isNotEmpty ? emp.empName[0] : "?",
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                    color: cardColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Status Indicator
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              width: 18,
-                              height: 18,
-                              decoration: BoxDecoration(
-                                color: statusColor,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isDark ? const Color(0xFF252836) : Colors.white,
-                                  width: 3,
-                                ),
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  emp.status ? Icons.check : Icons.close,
-                                  color: Colors.white,
-                                  size: 10,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(width: 15),
-
-                      // Info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              emp.empName,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                // Job Badge
-                                if (emp.job != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF59E0B).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.work_outline_rounded,
-                                          size: 12,
-                                          color: Color(0xFFF59E0B),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          emp.job!,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Color(0xFFF59E0B),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                const SizedBox(width: 8),
-                                // Branch Badge
-                                if (emp.branchName != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.store_rounded,
-                                          size: 12,
-                                          color: Color(0xFF8B5CF6),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          emp.branchName!,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Color(0xFF8B5CF6),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Actions
-                      Column(
-                        children: [
-                          // Edit Button
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EmployeeFormScreen(empId: emp.id),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF3B82F6).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.edit_rounded,
-                                color: Color(0xFF3B82F6),
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // Arrow
-                          Container(
-                            padding: const EdgeInsets.all(10),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Avatar with Status
+                    Stack(
+                      children: [
+                        Hero(
+                          tag: 'emp_avatar_${emp.id}',
+                          child: Container(
+                            width: 56,
+                            height: 56,
                             decoration: BoxDecoration(
-                              color: cardColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                colors: [
+                                  cardColor.withOpacity(0.2),
+                                  cardColor.withOpacity(0.1),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              color: cardColor,
-                              size: 14,
+                            child: Center(
+                              child: Text(
+                                emp.empName.isNotEmpty ? emp.empName[0] : "?",
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: cardColor,
+                                ),
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        // Status Indicator
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF252836) : Colors.white,
+                                width: 2.5,
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                emp.status ? Icons.check : Icons.close,
+                                color: Colors.white,
+                                size: 9,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // ✅ Info - التخطيط الجديد (عمودي)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Employee Name
+                          Text(
+                            emp.empName,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          
+                          const SizedBox(height: 8),
+
+                          // Branch
+                          if (emp.branchName != null && emp.branchName!.isNotEmpty)
+                            _buildInfoRow(
+                              icon: Icons.store_rounded,
+                              text: emp.branchName!,
+                              color: const Color(0xFF8B5CF6),
+                              isDark: isDark,
+                            ),
+
+                          if (emp.branchName != null && emp.branchName!.isNotEmpty)
+                            const SizedBox(height: 4),
+
+                          // Job
+                          if (emp.job != null && emp.job!.isNotEmpty)
+                            _buildInfoRow(
+                              icon: Icons.work_outline_rounded,
+                              text: emp.job!,
+                              color: const Color(0xFFF59E0B),
+                              isDark: isDark,
+                            ),
+
+                          // ✅ Mobile with Direct Actions
+if (emp.mobile1 != null && emp.mobile1!.isNotEmpty) ...[
+  const SizedBox(height: 6),
+  Row(
+    children: [
+      // Phone Number Display
+      Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 5,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.phone_rounded,
+                size: 12,
+                color: isDark ? Colors.white60 : Colors.grey.shade600,
+              ),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  emp.mobile1!,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white70 : Colors.grey.shade700,
+                    fontWeight: FontWeight.w500,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+      
+      const SizedBox(width: 8),
+      
+      // ✅ Call Button
+      GestureDetector(
+        onTap: () => _makePhoneCall(emp.mobile1!),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF10B981), Color(0xFF059669)],
+            ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF10B981).withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.call_rounded,
+            size: 16,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      
+      const SizedBox(width: 6),
+      
+      // ✅ WhatsApp Button
+      GestureDetector(
+        onTap: () => _openWhatsApp(emp.mobile1!),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+            ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF25D366).withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const FaIcon(
+            FontAwesomeIcons.whatsapp,
+            size: 16,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ],
+  ),
+],
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    // Actions Column
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        // Edit Button
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EmployeeFormScreen(empId: emp.id),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3B82F6).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.edit_rounded,
+                              color: Color(0xFF3B82F6),
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        // View Arrow
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: cardColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: cardColor,
+                            size: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
   // 📭 Empty State
   Widget _buildEmptyState(bool isDark) {

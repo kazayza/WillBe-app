@@ -1,4 +1,4 @@
-package com.example.willbee_app
+package com.willbee.app
 
 import io.flutter.embedding.android.FlutterActivity
 

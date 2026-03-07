@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
+import 'create_installments_screen.dart';
+import 'view_installments_screen.dart';
 
 class ChildFinanceScreen extends StatefulWidget {
   final int childId;
@@ -222,6 +224,49 @@ class _ChildFinanceScreenState extends State<ChildFinanceScreen>
     _dateController.dispose();
     super.dispose();
   }
+   
+  // ═══════════════════════════════════════════════════════════════
+// فتح شاشة إنشاء الأقساط
+// ═══════════════════════════════════════════════════════════════
+void _openCreateInstallments(Map<String, dynamic> item) async {
+  final user = Provider.of<AuthProvider>(context, listen: false).user?.fullName ?? "System";
+  
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => CreateInstallmentsScreen(
+        financeId: item['ID'],
+        totalAmount: (item['amount_Sub'] ?? 0).toDouble(),
+        childName: widget.childName,
+        currentUser: user,
+      ),
+    ),
+  );
+
+  // لو تم الحفظ بنجاح، نحدث البيانات
+  if (result == true) {
+    _loadData();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// فتح شاشة عرض الأقساط
+// ═══════════════════════════════════════════════════════════════
+void _openViewInstallments(Map<String, dynamic> item) {
+  final user = Provider.of<AuthProvider>(context, listen: false).user?.fullName ?? "System";
+  
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ViewInstallmentsScreen(
+        financeId: item['ID'],
+        childName: widget.childName,
+        totalAmount: (item['amount_Sub'] ?? 0).toDouble(),
+        currentUser: user,
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -1065,38 +1110,74 @@ class _ChildFinanceScreenState extends State<ChildFinanceScreen>
                           ],
                         ),
                       ),
-                      // Edit Button
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _editingId = item['ID'];
-                            _selectedSession = item['SessionID'];
-                            _selectedBusLine = item['BusLine'];
-                            _selectedKind = item['Kind_subscrip'];
-                            _dateController.text = dateStr;
-                            _amountBaseController.text =
-                                item['amountBase'].toString();
-                            _discountController.text =
-                                item['discount'].toString();
-                            _amountSubController.text =
-                                item['amount_Sub'].toString();
-                            _isFormExpanded = true;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF3B82F6).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.edit_rounded,
-                            color: Color(0xFF3B82F6),
-                            size: 18,
-                          ),
-                        ),
-                      ),
+                      // Action Buttons Row
+Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    // 📅 زر تقسيط
+    GestureDetector(
+      onTap: () => _openCreateInstallments(item),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF10B981).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(
+          Icons.calendar_month_rounded,
+          color: Color(0xFF10B981),
+          size: 18,
+        ),
+      ),
+    ),
+    const SizedBox(width: 8),
+    // 👁️ زر عرض الأقساط
+    GestureDetector(
+      onTap: () => _openViewInstallments(item),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF8B5CF6).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(
+          Icons.visibility_rounded,
+          color: Color(0xFF8B5CF6),
+          size: 18,
+        ),
+      ),
+    ),
+    const SizedBox(width: 8),
+    // ✏️ زر التعديل
+    GestureDetector(
+      onTap: () {
+        setState(() {
+          _editingId = item['ID'];
+          _selectedSession = item['SessionID'];
+          _selectedBusLine = item['BusLine'];
+          _selectedKind = item['Kind_subscrip'];
+          _dateController.text = dateStr;
+          _amountBaseController.text = item['amountBase'].toString();
+          _discountController.text = item['discount'].toString();
+          _amountSubController.text = item['amount_Sub'].toString();
+          _isFormExpanded = true;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3B82F6).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(
+          Icons.edit_rounded,
+          color: Color(0xFF3B82F6),
+          size: 18,
+        ),
+      ),
+    ),
+  ],
+),
                     ],
                   ),
 

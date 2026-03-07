@@ -4,6 +4,10 @@ import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 import 'child_form_screen.dart';
 import 'child_finance_screen.dart';
+import 'ChildAbsenceHistoryScreen.dart';
+import '../providers/classes_provider.dart';
+import '../providers/children_provider.dart';
+import '../providers/auth_provider.dart';
 
 class ChildDetailsScreen extends StatefulWidget {
   final int childId;
@@ -141,12 +145,21 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen>
                                   isDark: isDark,
                                 ),
                                 _buildInfoRow(
-                                  icon: Icons.store_rounded,
-                                  label: "الفرع",
-                                  value: _data['BranchName'],
-                                  isDark: isDark,
-                                  valueColor: const Color(0xFF6366F1),
-                                ),
+  icon: Icons.store_rounded,
+  label: "الفرع",
+  value: _data['branchName'],
+  isDark: isDark,
+  valueColor: const Color(0xFF6366F1),
+),
+_buildInfoRow(
+  icon: Icons.meeting_room_rounded,
+  label: "الفصل",
+  value: _data['ClassName'] ?? "غير مسكن",
+  isDark: isDark,
+  valueColor: _data['ClassName'] != null
+      ? const Color(0xFF10B981)
+      : const Color(0xFFEF4444),
+),
                               ],
                             ),
 
@@ -261,6 +274,64 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen>
                                   _buildNotesSection(isDark),
                               ],
                             ),
+                            
+                            const SizedBox(height: 16),
+
+// 📋 System Info Card
+_buildInfoCard(
+  isDark: isDark,
+  title: "بيانات النظام",
+  icon: Icons.admin_panel_settings_rounded,
+  color: const Color(0xFF6B7280),
+  delay: 300,
+  children: [
+    // التسجيل
+    _buildSubSectionHeader(
+      "التسجيل",
+      Icons.person_add_rounded,
+      const Color(0xFF10B981),
+      isDark,
+    ),
+    _buildInfoRow(
+      icon: Icons.person_outline_rounded,
+      label: "تم التسجيل بواسطة",
+      value: _data['userAdd'],
+      isDark: isDark,
+      valueColor: const Color(0xFF10B981),
+    ),
+    _buildInfoRow(
+      icon: Icons.access_time_rounded,
+      label: "وقت التسجيل",
+      value: _formatDateTime(_data['Addtime']),
+      isDark: isDark,
+    ),
+
+    const SizedBox(height: 12),
+
+    // التعديل
+    if (_data['useredit'] != null) ...[
+      _buildSubSectionHeader(
+        "آخر تعديل",
+        Icons.edit_rounded,
+        const Color(0xFFF59E0B),
+        isDark,
+      ),
+      _buildInfoRow(
+        icon: Icons.person_outline_rounded,
+        label: "تم التعديل بواسطة",
+        value: _data['useredit'],
+        isDark: isDark,
+        valueColor: const Color(0xFFF59E0B),
+      ),
+      _buildInfoRow(
+        icon: Icons.access_time_rounded,
+        label: "وقت التعديل",
+        value: _formatDateTime(_data['editTime']),
+        isDark: isDark,
+      ),
+    ],
+  ],
+),
 
                             const SizedBox(height: 30),
 
@@ -938,11 +1009,29 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen>
             ),
             _buildActionCard(
               icon: Icons.calendar_month_rounded,
-              label: "الحضور",
+              label: "سجل الغياب", // غيرت الاسم ليكون أدق (أو سيبه "الحضور" براحتك)
               color: const Color(0xFFF59E0B),
               isDark: isDark,
-              onTap: () {},
+              onTap: () {
+              // الانتقال لشاشة سجل غياب الطفل
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChildAbsenceHistoryScreen(
+                      childId: widget.childId!, // تأكد إنك معاك الـ ID (غالباً هو widget.childId أو child['ID_Child'])
+                      childName: widget.childName, // أو المتغير اللي شايل الاسم
+                    ), 
+                  ),
+                );
+              },
             ),
+            _buildActionCard(
+  icon: Icons.meeting_room_rounded,
+  label: "تسكين فصل",
+  color: const Color(0xFF8B5CF6),
+  isDark: isDark,
+  onTap: () => _showAssignToClassDialog(isDark),
+),
             _buildActionCard(
               icon: Icons.directions_bus_rounded,
               label: "الباص",
@@ -1214,6 +1303,439 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen>
       ),
     );
   }
+  
+// 🏫 تسكين الطفل في فصل
+Future<void> _showAssignToClassDialog(bool isDark) async {
+  final classesProvider = Provider.of<ClassesProvider>(context, listen: false);
+  final childrenProvider = Provider.of<ChildrenProvider>(context, listen: false);
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+  // لو الطفل مسكن أصلاً
+  if (_data['ClassName'] != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.info_rounded, color: Colors.white),
+            const SizedBox(width: 10),
+            Text("الطفل مسكن بالفعل في ${_data['ClassName']}"),
+          ],
+        ),
+        backgroundColor: const Color(0xFFF59E0B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+    return;
+  }
+
+  // جلب الفرع
+  final branchId = _data['Branch'];
+  if (branchId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.error_rounded, color: Colors.white),
+            SizedBox(width: 10),
+            Text("لم يتم تحديد فرع للطفل"),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+    return;
+  }
+
+  // ✅ تحميل الفصول قبل فتح الـ Dialog
+  await classesProvider.fetchClasses(branchId);
+
+  if (!mounted) return;
+
+  int? selectedClassId;
+  final notesController = TextEditingController();
+  bool isLoading = false;
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (_, setState) {
+        final classes = classesProvider.classes;
+        final availableClasses = classes.where((cls) {
+          int current = cls['CurrentStudentCount'] ?? 0;
+          int capacity = cls['Capacity'] ?? 0;
+          return current < capacity;
+        }).toList();
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: isDark ? const Color(0xFF252836) : Colors.white,
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.meeting_room_rounded,
+                  color: Color(0xFF6366F1),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "تسكين في فصل",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _data['FullNameArabic'] ?? '',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[500],
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: availableClasses.isEmpty
+              ? Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.meeting_room_outlined,
+                        size: 60,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "لا توجد فصول متاحة",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // قائمة الفصول
+                      Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.grey[700]!
+                                : Colors.grey[300]!,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: availableClasses.length,
+                          itemBuilder: (_, index) {
+                            final cls = availableClasses[index];
+                            final isSelected =
+                                selectedClassId == cls['Class_ID'];
+                            final current =
+                                cls['CurrentStudentCount'] ?? 0;
+                            final capacity = cls['Capacity'] ?? 0;
+                            final remaining = capacity - current;
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: Material(
+                                color: isSelected
+                                    ? const Color(0xFF6366F1)
+                                    : (isDark
+                                        ? const Color(0xFF1E1E2E)
+                                        : Colors.grey[50]),
+                                borderRadius: BorderRadius.circular(12),
+                                child: InkWell(
+                                  onTap: () => setState(() =>
+                                      selectedClassId = cls['Class_ID']),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? Colors.white
+                                                    .withOpacity(0.2)
+                                                : const Color(0xFF6366F1)
+                                                    .withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: Icon(
+                                            Icons.meeting_room_rounded,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : const Color(0xFF6366F1),
+                                            size: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                cls['ClassName'] ?? '',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight:
+                                                      FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : (isDark
+                                                          ? Colors.white
+                                                          : Colors.black87),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                "$remaining مقعد متاح من $capacity",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: isSelected
+                                                      ? Colors.white70
+                                                      : Colors.grey[500],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (isSelected)
+                                          Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: const Icon(
+                                              Icons.check,
+                                              color: Color(0xFF6366F1),
+                                              size: 18,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // الملاحظات
+                      TextField(
+                        controller: notesController,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: "ملاحظات (اختياري)",
+                          labelStyle: TextStyle(color: Colors.grey[500]),
+                          prefixIcon: Icon(
+                            Icons.note_alt_outlined,
+                            color: Colors.grey[500],
+                          ),
+                          filled: true,
+                          fillColor: isDark
+                              ? const Color(0xFF1E1E2E)
+                              : Colors.grey[50],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF6366F1),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          actions: [
+            TextButton(
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      notesController.dispose();
+                      Navigator.pop(dialogContext);
+                    },
+              child: Text(
+                "إلغاء",
+                style: TextStyle(color: Colors.grey[500]),
+              ),
+            ),
+            if (availableClasses.isNotEmpty)
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                onPressed: (selectedClassId == null || isLoading)
+                    ? null
+                    : () async {
+                        setState(() => isLoading = true);
+
+                        try {
+                          final user =
+                              authProvider.user?.fullName ?? "System";
+
+                          await classesProvider.assignStudent(
+                            childId: widget.childId,
+                            classId: selectedClassId!,
+                            branchId: branchId,
+                            notes: notesController.text,
+                            userAdd: user,
+                          );
+
+                          notesController.dispose();
+                          Navigator.pop(dialogContext);
+                          _fetchDetails();
+
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Row(
+                                  children: [
+                                    Icon(Icons.check_circle,
+                                        color: Colors.white),
+                                    SizedBox(width: 10),
+                                    Text("تم التسكين بنجاح ✅"),
+                                  ],
+                                ),
+                                backgroundColor: const Color(0xFF10B981),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                margin: const EdgeInsets.all(16),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          setState(() => isLoading = false);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(Icons.error,
+                                        color: Colors.white),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        e.toString().replaceAll(
+                                            'Exception: ', ''),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                margin: const EdgeInsets.all(16),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_rounded, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            "تسكين",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
+  String? _formatDateTime(dynamic date) {
+  if (date == null) return null;
+  try {
+    final dateStr = date.toString();
+    final dateTime = DateTime.parse(dateStr);
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final year = dateTime.year.toString();
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return "$day/$month/$year - $hour:$minute";
+  } catch (e) {
+    return date.toString();
+  }
+}
 
   // 📅 Format Date
   String? _formatDate(dynamic date) {

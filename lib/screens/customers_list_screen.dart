@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 import 'customer_details_screen.dart';
+import 'add_customer_screen.dart';
 
 class CustomersListScreen extends StatefulWidget {
   const CustomersListScreen({super.key});
@@ -226,6 +227,7 @@ class _CustomersListScreenState extends State<CustomersListScreen>
                 ],
               ),
             ),
+            floatingActionButton: _buildFloatingActionButton(isDark),
     );
   }
 
@@ -1116,4 +1118,52 @@ class _CustomersListScreenState extends State<CustomersListScreen>
       ),
     );
   }
+  
+   
+
+  // ✅ دالة زر الإضافة الجديد
+  Widget _buildFloatingActionButton(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF10B981), Color(0xFF059669)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF10B981).withOpacity(0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: FloatingActionButton.extended(
+        heroTag: 'addCustomerBtn',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddCustomerScreen()),
+          ).then((result) {
+            // لو تم الحفظ، نحدث القائمة
+            if (result == true) {
+              _animationController.reset();
+              _loadCustomers();
+            }
+          });
+        },
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        icon: const Icon(Icons.person_add_rounded, color: Colors.white),
+        label: const Text(
+          'إضافة عميل',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
 }
+

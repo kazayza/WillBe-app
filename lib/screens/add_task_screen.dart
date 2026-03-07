@@ -47,7 +47,6 @@ class _AddTaskScreenState extends State<AddTaskScreen>
   bool _isLoadingEmployees = false;
   int? _selectedAssignedEmpId;
 
-  // حساب نسبة الاكتمال
   double get _completionPercentage {
     int filled = 0;
     int total = 4;
@@ -168,15 +167,8 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
 
     if (picked != null) {
-      _selectedDueDate = DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        10,
-      );
-      _dueDateController.text =
-          DateFormat('yyyy/MM/dd').format(_selectedDueDate!);
-
+      _selectedDueDate = DateTime(picked.year, picked.month, picked.day);
+      _dueDateController.text = DateFormat('yyyy/MM/dd').format(_selectedDueDate!);
       setState(() {});
     }
   }
@@ -188,8 +180,8 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     if (assignedTo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
-            children: const [
+          content: const Row(
+            children: [
               Icon(Icons.warning_rounded, color: Colors.white),
               SizedBox(width: 10),
               Text('برجاء اختيار الموظف المسؤول عن المهمة'),
@@ -265,7 +257,6 @@ class _AddTaskScreenState extends State<AddTaskScreen>
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Success Animation
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: 1),
                 duration: const Duration(milliseconds: 500),
@@ -373,68 +364,51 @@ class _AddTaskScreenState extends State<AddTaskScreen>
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDark;
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.height < 700;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF5F6FA),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // 🎨 App Bar
-          _buildSliverAppBar(isDark),
-
-          // 📊 Progress Indicator
+          _buildSliverAppBar(isDark, isSmallScreen),
           SliverToBoxAdapter(
-            child: _buildProgressIndicator(isDark),
+            child: _buildProgressIndicator(isDark, isSmallScreen),
           ),
-
-          // 📝 Form Content
           SliverToBoxAdapter(
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      // Customer/Lead Info
                       if (widget.customerName != null || widget.leadName != null)
                         _buildAnimatedCard(
                           index: 0,
-                          child: _buildRelatedEntityCard(isDark),
+                          child: _buildRelatedEntityCard(isDark, isSmallScreen),
                         ),
-
                       if (widget.customerName != null || widget.leadName != null)
-                        const SizedBox(height: 16),
-
-                      // بيانات المهمة
+                        SizedBox(height: isSmallScreen ? 12 : 16),
                       _buildAnimatedCard(
                         index: 1,
-                        child: _buildTaskDataCard(isDark),
+                        child: _buildTaskDataCard(isDark, isSmallScreen),
                       ),
-
-                      const SizedBox(height: 16),
-
-                      // الأولوية والموعد
+                      SizedBox(height: isSmallScreen ? 12 : 16),
                       _buildAnimatedCard(
                         index: 2,
-                        child: _buildPriorityAndDateCard(isDark),
+                        child: _buildPriorityAndDateCard(isDark, isSmallScreen),
                       ),
-
-                      const SizedBox(height: 16),
-
-                      // ملاحظات
+                      SizedBox(height: isSmallScreen ? 12 : 16),
                       _buildAnimatedCard(
                         index: 3,
-                        child: _buildNotesCard(isDark),
+                        child: _buildNotesCard(isDark, isSmallScreen),
                       ),
-
-                      const SizedBox(height: 24),
-
-                      // زر الحفظ
-                      _buildSaveButton(isDark),
-
-                      const SizedBox(height: 30),
+                      SizedBox(height: isSmallScreen ? 16 : 24),
+                      _buildSaveButton(isDark, isSmallScreen),
+                      SizedBox(height: isSmallScreen ? 20 : 30),
                     ],
                   ),
                 ),
@@ -446,40 +420,45 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 🎨 Sliver App Bar
-  Widget _buildSliverAppBar(bool isDark) {
+  Widget _buildSliverAppBar(bool isDark, bool isSmallScreen) {
     return SliverAppBar(
-      expandedHeight: 180,
+      expandedHeight: isSmallScreen ? 120 : 180,
       floating: true,
       pinned: true,
       elevation: 0,
       backgroundColor: const Color(0xFFF59E0B),
       leading: IconButton(
         icon: Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
           ),
-          child: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.white, size: 18),
+          child: Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.white,
+            size: isSmallScreen ? 16 : 18,
+          ),
         ),
         onPressed: () => _showExitConfirmation(isDark),
       ),
       actions: [
         IconButton(
           icon: Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
             ),
-            child: const Icon(Icons.refresh_rounded,
-                color: Colors.white, size: 20),
+            child: Icon(
+              Icons.refresh_rounded,
+              color: Colors.white,
+              size: isSmallScreen ? 18 : 20,
+            ),
           ),
           onPressed: _resetForm,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: isSmallScreen ? 4 : 8),
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -492,13 +471,12 @@ class _AddTaskScreenState extends State<AddTaskScreen>
           ),
           child: Stack(
             children: [
-              // Decorative circles
               Positioned(
                 right: -50,
                 top: -50,
                 child: Container(
-                  width: 200,
-                  height: 200,
+                  width: isSmallScreen ? 150 : 200,
+                  height: isSmallScreen ? 150 : 200,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white.withOpacity(0.1),
@@ -509,57 +487,51 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                 left: -30,
                 bottom: 20,
                 child: Container(
-                  width: 100,
-                  height: 100,
+                  width: isSmallScreen ? 70 : 100,
+                  height: isSmallScreen ? 70 : 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white.withOpacity(0.1),
                   ),
                 ),
               ),
-
-              // Content
               Positioned(
-                bottom: 40,
-                left: 20,
-                right: 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                bottom: isSmallScreen ? 20 : 40,
+                left: isSmallScreen ? 15 : 20,
+                right: isSmallScreen ? 15 : 20,
+                child: Row(
                   children: [
-                    Row(
+                    Container(
+                      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 15),
+                      ),
+                      child: Icon(
+                        Icons.add_task_rounded,
+                        color: Colors.white,
+                        size: isSmallScreen ? 22 : 28,
+                      ),
+                    ),
+                    SizedBox(width: isSmallScreen ? 10 : 15),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: const Icon(
-                            Icons.add_task_rounded,
+                        Text(
+                          "مهمة جديدة",
+                          style: TextStyle(
                             color: Colors.white,
-                            size: 28,
+                            fontSize: isSmallScreen ? 18 : 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(width: 15),
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "مهمة جديدة",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              "أضف مهمة متابعة جديدة",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          "أضف مهمة متابعة جديدة",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: isSmallScreen ? 11 : 14,
+                          ),
                         ),
                       ],
                     ),
@@ -573,14 +545,13 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 📊 Progress Indicator
-  Widget _buildProgressIndicator(bool isDark) {
+  Widget _buildProgressIndicator(bool isDark, bool isSmallScreen) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(isSmallScreen ? 12 : 16),
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF252836) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 14 : 18),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFF59E0B).withOpacity(0.1),
@@ -597,22 +568,22 @@ class _AddTaskScreenState extends State<AddTaskScreen>
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF59E0B).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.pie_chart_rounded,
-                      color: Color(0xFFF59E0B),
-                      size: 18,
+                      color: const Color(0xFFF59E0B),
+                      size: isSmallScreen ? 14 : 18,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: isSmallScreen ? 8 : 10),
                   Text(
                     "نسبة الاكتمال",
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: isSmallScreen ? 12 : 14,
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
@@ -620,7 +591,10 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 8 : 12,
+                  vertical: isSmallScreen ? 4 : 6,
+                ),
                 decoration: BoxDecoration(
                   color: _getProgressColor(_completionPercentage).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -628,7 +602,7 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                 child: Text(
                   "${(_completionPercentage * 100).toInt()}%",
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: isSmallScreen ? 12 : 14,
                     fontWeight: FontWeight.bold,
                     color: _getProgressColor(_completionPercentage),
                   ),
@@ -636,12 +610,12 @@ class _AddTaskScreenState extends State<AddTaskScreen>
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isSmallScreen ? 8 : 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
               value: _completionPercentage,
-              minHeight: 8,
+              minHeight: isSmallScreen ? 6 : 8,
               backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
               valueColor: AlwaysStoppedAnimation<Color>(
                 _getProgressColor(_completionPercentage),
@@ -660,7 +634,6 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     return const Color(0xFF10B981);
   }
 
-  // 🎴 Animated Card
   Widget _buildAnimatedCard({required int index, required Widget child}) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -676,8 +649,7 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 👤 Related Entity Card (Customer/Lead)
-  Widget _buildRelatedEntityCard(bool isDark) {
+  Widget _buildRelatedEntityCard(bool isDark, bool isSmallScreen) {
     final isCustomer = widget.customerName != null;
     final name = isCustomer ? widget.customerName! : widget.leadName!;
     final color = isCustomer ? const Color(0xFF3B82F6) : const Color(0xFF8B5CF6);
@@ -690,26 +662,26 @@ class _AddTaskScreenState extends State<AddTaskScreen>
             color.withOpacity(0.05),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
               ),
               child: Icon(
                 isCustomer ? Icons.person_rounded : Icons.person_add_rounded,
                 color: color,
-                size: 24,
+                size: isSmallScreen ? 20 : 24,
               ),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: isSmallScreen ? 10 : 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -717,15 +689,15 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                   Text(
                     isCustomer ? "مهمة للعميل" : "مهمة للعميل المحتمل",
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: isSmallScreen ? 10 : 12,
                       color: Colors.grey[500],
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: isSmallScreen ? 2 : 4),
                   Text(
                     name,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isSmallScreen ? 14 : 16,
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
@@ -734,15 +706,18 @@ class _AddTaskScreenState extends State<AddTaskScreen>
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 8 : 10,
+                vertical: isSmallScreen ? 4 : 5,
+              ),
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 isCustomer ? "عميل" : "Lead",
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 9 : 11,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -754,51 +729,48 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 📋 Task Data Card
-  Widget _buildTaskDataCard(bool isDark) {
+  Widget _buildTaskDataCard(bool isDark, bool isSmallScreen) {
     return _buildCard(
       isDark: isDark,
+      isSmallScreen: isSmallScreen,
       title: "بيانات المهمة",
       icon: Icons.task_alt_rounded,
       color: const Color(0xFFF59E0B),
       children: [
-        // اختيار الموظف
-        _buildEmployeeSelector(isDark),
-        const SizedBox(height: 16),
-
-        // عنوان المهمة
+        _buildEmployeeDropdown(isDark, isSmallScreen),
+        SizedBox(height: isSmallScreen ? 12 : 16),
         _buildTextField(
           controller: _titleController,
           label: "عنوان المهمة",
           icon: Icons.title_rounded,
           color: const Color(0xFFF59E0B),
           isDark: isDark,
+          isSmallScreen: isSmallScreen,
           validator: (v) => v == null || v.isEmpty ? "مطلوب" : null,
           onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 14),
-
-        // وصف المهمة
+        SizedBox(height: isSmallScreen ? 10 : 14),
         _buildTextField(
           controller: _descController,
           label: "وصف المهمة (اختياري)",
           icon: Icons.description_rounded,
           color: const Color(0xFF8B5CF6),
           isDark: isDark,
+          isSmallScreen: isSmallScreen,
           maxLines: 3,
         ),
       ],
     );
   }
 
-  // 👥 Employee Selector
-  Widget _buildEmployeeSelector(bool isDark) {
+  // ✅ قائمة منسدلة للموظفين
+  Widget _buildEmployeeDropdown(bool isDark, bool isSmallScreen) {
     if (_isLoadingEmployees) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
           border: Border.all(
             color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
           ),
@@ -806,24 +778,27 @@ class _AddTaskScreenState extends State<AddTaskScreen>
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
               decoration: BoxDecoration(
                 color: const Color(0xFF6366F1).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
               ),
-              child: const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
+              child: SizedBox(
+                width: isSmallScreen ? 16 : 20,
+                height: isSmallScreen ? 16 : 20,
+                child: const CircularProgressIndicator(
                   strokeWidth: 2,
                   color: Color(0xFF6366F1),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: isSmallScreen ? 10 : 12),
             Text(
               "جاري تحميل الموظفين...",
-              style: TextStyle(color: Colors.grey[500]),
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: isSmallScreen ? 12 : 14,
+              ),
             ),
           ],
         ),
@@ -832,10 +807,10 @@ class _AddTaskScreenState extends State<AddTaskScreen>
 
     if (_employees.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
         decoration: BoxDecoration(
           color: const Color(0xFFEF4444).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
           border: Border.all(
             color: const Color(0xFFEF4444).withOpacity(0.3),
           ),
@@ -843,33 +818,34 @@ class _AddTaskScreenState extends State<AddTaskScreen>
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
               decoration: BoxDecoration(
                 color: const Color(0xFFEF4444).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.error_outline_rounded,
-                color: Color(0xFFEF4444),
-                size: 20,
+                color: const Color(0xFFEF4444),
+                size: isSmallScreen ? 16 : 20,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: isSmallScreen ? 10 : 12),
             Expanded(
               child: Text(
                 "لا توجد موظفين متاحين",
                 style: TextStyle(
                   color: Colors.red[400],
                   fontWeight: FontWeight.w500,
+                  fontSize: isSmallScreen ? 12 : 14,
                 ),
               ),
             ),
             GestureDetector(
               onTap: _loadEmployees,
-              child: const Icon(
+              child: Icon(
                 Icons.refresh_rounded,
-                color: Color(0xFFEF4444),
-                size: 20,
+                color: const Color(0xFFEF4444),
+                size: isSmallScreen ? 18 : 20,
               ),
             ),
           ],
@@ -883,37 +859,40 @@ class _AddTaskScreenState extends State<AddTaskScreen>
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
               decoration: BoxDecoration(
                 color: const Color(0xFF6366F1).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.person_search_rounded,
-                color: Color(0xFF6366F1),
-                size: 18,
+                color: const Color(0xFF6366F1),
+                size: isSmallScreen ? 14 : 18,
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: isSmallScreen ? 8 : 10),
             Text(
               "تعيين المهمة إلى",
               style: TextStyle(
-                fontSize: 14,
+                fontSize: isSmallScreen ? 12 : 14,
                 fontWeight: FontWeight.w600,
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: isSmallScreen ? 4 : 6),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 6 : 8,
+                vertical: 2,
+              ),
               decoration: BoxDecoration(
                 color: const Color(0xFFEF4444),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
               ),
-              child: const Text(
+              child: Text(
                 "مطلوب",
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: isSmallScreen ? 8 : 10,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -921,133 +900,216 @@ class _AddTaskScreenState extends State<AddTaskScreen>
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _employees.map((emp) {
-            final isSelected = _selectedAssignedEmpId == emp['id'];
-            return GestureDetector(
-              onTap: () {
-                setState(() => _selectedAssignedEmpId = emp['id'] as int);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  gradient: isSelected
-                      ? const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                        )
-                      : null,
-                  color: isSelected
-                      ? null
-                      : (isDark
-                          ? const Color(0xFF1E1E2E)
-                          : Colors.grey[100]),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF6366F1)
-                        : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                    width: isSelected ? 2 : 1,
-                  ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF6366F1).withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                      : null,
-                ),
+        SizedBox(height: isSmallScreen ? 10 : 12),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
+            borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
+            border: Border.all(
+              color: _selectedAssignedEmpId != null
+                  ? const Color(0xFF6366F1)
+                  : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
+              width: _selectedAssignedEmpId != null ? 2 : 1,
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: _selectedAssignedEmpId,
+              isExpanded: true,
+              hint: Padding(
+                padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isSelected
-                          ? Icons.check_circle_rounded
-                          : Icons.person_outline_rounded,
-                      size: 16,
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                      Icons.person_outline_rounded,
+                      color: Colors.grey[500],
+                      size: isSmallScreen ? 18 : 22,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: isSmallScreen ? 10 : 12),
                     Text(
-                      emp['name'] as String,
+                      "اختر الموظف المسؤول",
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected
-                            ? Colors.white
-                            : (isDark ? Colors.grey[300] : Colors.grey[700]),
+                        color: Colors.grey[500],
+                        fontSize: isSmallScreen ? 13 : 15,
                       ),
                     ),
                   ],
                 ),
               ),
-            );
-          }).toList(),
+              icon: Padding(
+                padding: EdgeInsets.only(left: isSmallScreen ? 8 : 12),
+                child: Container(
+                  padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6366F1).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
+                  ),
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: const Color(0xFF6366F1),
+                    size: isSmallScreen ? 18 : 22,
+                  ),
+                ),
+              ),
+              dropdownColor: isDark ? const Color(0xFF252836) : Colors.white,
+              borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+              padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 4 : 8),
+              items: _employees.map((emp) {
+                final isSelected = _selectedAssignedEmpId == emp['id'];
+                return DropdownMenuItem<int>(
+                  value: emp['id'] as int,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 8 : 12,
+                      vertical: isSmallScreen ? 6 : 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF6366F1).withOpacity(0.1)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                          decoration: BoxDecoration(
+                            gradient: isSelected
+                                ? const LinearGradient(
+                                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                                  )
+                                : null,
+                            color: isSelected
+                                ? null
+                                : const Color(0xFF6366F1).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
+                          ),
+                          child: Icon(
+                            isSelected
+                                ? Icons.check_circle_rounded
+                                : Icons.person_outline_rounded,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF6366F1),
+                            size: isSmallScreen ? 16 : 20,
+                          ),
+                        ),
+                        SizedBox(width: isSmallScreen ? 10 : 12),
+                        Expanded(
+                          child: Text(
+                            emp['name'] as String,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 13 : 15,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected
+                                  ? const Color(0xFF6366F1)
+                                  : (isDark ? Colors.white : Colors.black87),
+                            ),
+                          ),
+                        ),
+                        if (isSelected)
+                          Icon(
+                            Icons.check_rounded,
+                            color: const Color(0xFF6366F1),
+                            size: isSmallScreen ? 16 : 20,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() => _selectedAssignedEmpId = value);
+              },
+              selectedItemBuilder: (context) {
+                return _employees.map((emp) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                            ),
+                            borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
+                          ),
+                          child: Icon(
+                            Icons.person_rounded,
+                            color: Colors.white,
+                            size: isSmallScreen ? 14 : 18,
+                          ),
+                        ),
+                        SizedBox(width: isSmallScreen ? 10 : 12),
+                        Expanded(
+                          child: Text(
+                            emp['name'] as String,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 13 : 15,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+          ),
         ),
       ],
     );
   }
 
-  // ⚡ Priority and Date Card
-  Widget _buildPriorityAndDateCard(bool isDark) {
+  Widget _buildPriorityAndDateCard(bool isDark, bool isSmallScreen) {
     return _buildCard(
       isDark: isDark,
+      isSmallScreen: isSmallScreen,
       title: "الأولوية والموعد",
       icon: Icons.schedule_rounded,
       color: const Color(0xFFEF4444),
       children: [
-        // Priority Selector
-        _buildPrioritySelector(isDark),
-        const SizedBox(height: 16),
-
-        // Date Picker
-        _buildDatePicker(isDark),
+        _buildPrioritySelector(isDark, isSmallScreen),
+        SizedBox(height: isSmallScreen ? 12 : 16),
+        _buildDatePicker(isDark, isSmallScreen),
       ],
     );
   }
 
-  // 🚩 Priority Selector
-  Widget _buildPrioritySelector(bool isDark) {
+  Widget _buildPrioritySelector(bool isDark, bool isSmallScreen) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
               decoration: BoxDecoration(
                 color: const Color(0xFFEF4444).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.flag_rounded,
-                color: Color(0xFFEF4444),
-                size: 18,
+                color: const Color(0xFFEF4444),
+                size: isSmallScreen ? 14 : 18,
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: isSmallScreen ? 8 : 10),
             Text(
               "أولوية المهمة",
               style: TextStyle(
-                fontSize: 14,
+                fontSize: isSmallScreen ? 12 : 14,
                 fontWeight: FontWeight.w600,
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: isSmallScreen ? 10 : 12),
         Row(
           children: [
             _buildPriorityChip(
@@ -1056,22 +1118,25 @@ class _AddTaskScreenState extends State<AddTaskScreen>
               icon: Icons.keyboard_double_arrow_up_rounded,
               color: const Color(0xFFEF4444),
               isDark: isDark,
+              isSmallScreen: isSmallScreen,
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: isSmallScreen ? 8 : 10),
             _buildPriorityChip(
               label: "متوسطة",
               value: "Medium",
               icon: Icons.remove_rounded,
               color: const Color(0xFFF59E0B),
               isDark: isDark,
+              isSmallScreen: isSmallScreen,
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: isSmallScreen ? 8 : 10),
             _buildPriorityChip(
               label: "منخفضة",
               value: "Low",
               icon: Icons.keyboard_double_arrow_down_rounded,
               color: const Color(0xFF10B981),
               isDark: isDark,
+              isSmallScreen: isSmallScreen,
             ),
           ],
         ),
@@ -1085,6 +1150,7 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     required IconData icon,
     required Color color,
     required bool isDark,
+    required bool isSmallScreen,
   }) {
     final isSelected = _selectedPriority == value;
 
@@ -1095,13 +1161,13 @@ class _AddTaskScreenState extends State<AddTaskScreen>
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 8 : 12),
           decoration: BoxDecoration(
             gradient: isSelected
                 ? LinearGradient(colors: [color, color.withOpacity(0.8)])
                 : null,
             color: isSelected ? null : color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
             border: Border.all(
               color: isSelected ? color : color.withOpacity(0.3),
               width: isSelected ? 2 : 1,
@@ -1120,14 +1186,14 @@ class _AddTaskScreenState extends State<AddTaskScreen>
             children: [
               Icon(
                 icon,
-                size: 20,
+                size: isSmallScreen ? 16 : 20,
                 color: isSelected ? Colors.white : color,
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: isSmallScreen ? 10 : 12,
                   fontWeight: FontWeight.w600,
                   color: isSelected ? Colors.white : color,
                 ),
@@ -1139,15 +1205,14 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 📅 Date Picker
-  Widget _buildDatePicker(bool isDark) {
+  Widget _buildDatePicker(bool isDark, bool isSmallScreen) {
     return GestureDetector(
       onTap: _pickDueDate,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
           border: Border.all(
             color: _selectedDueDate != null
                 ? const Color(0xFFF59E0B)
@@ -1158,18 +1223,18 @@ class _AddTaskScreenState extends State<AddTaskScreen>
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
               decoration: BoxDecoration(
                 color: const Color(0xFFF59E0B).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.event_rounded,
-                color: Color(0xFFF59E0B),
-                size: 20,
+                color: const Color(0xFFF59E0B),
+                size: isSmallScreen ? 16 : 20,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: isSmallScreen ? 10 : 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1177,18 +1242,17 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                   Text(
                     "تاريخ الاستحقاق",
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: isSmallScreen ? 10 : 12,
                       color: Colors.grey[500],
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: isSmallScreen ? 2 : 4),
                   Text(
                     _selectedDueDate != null
-                        ? DateFormat('EEEE, d MMMM yyyy', 'ar')
-                            .format(_selectedDueDate!)
+                        ? DateFormat('EEEE, d MMMM yyyy', 'ar').format(_selectedDueDate!)
                         : "اختر التاريخ (اختياري)",
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: isSmallScreen ? 12 : 14,
                       fontWeight: _selectedDueDate != null
                           ? FontWeight.w600
                           : FontWeight.normal,
@@ -1209,14 +1273,14 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                   });
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: EdgeInsets.all(isSmallScreen ? 4 : 6),
                   decoration: BoxDecoration(
                     color: Colors.grey.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.close_rounded,
-                    size: 16,
+                    size: isSmallScreen ? 14 : 16,
                     color: Colors.grey[500],
                   ),
                 ),
@@ -1224,7 +1288,7 @@ class _AddTaskScreenState extends State<AddTaskScreen>
             else
               Icon(
                 Icons.calendar_today_rounded,
-                size: 18,
+                size: isSmallScreen ? 16 : 18,
                 color: Colors.grey[500],
               ),
           ],
@@ -1233,10 +1297,10 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 📝 Notes Card
-  Widget _buildNotesCard(bool isDark) {
+  Widget _buildNotesCard(bool isDark, bool isSmallScreen) {
     return _buildCard(
       isDark: isDark,
+      isSmallScreen: isSmallScreen,
       title: "ملاحظات إضافية",
       icon: Icons.note_alt_rounded,
       color: const Color(0xFF8B5CF6),
@@ -1247,15 +1311,16 @@ class _AddTaskScreenState extends State<AddTaskScreen>
           icon: Icons.edit_note_rounded,
           color: const Color(0xFF8B5CF6),
           isDark: isDark,
+          isSmallScreen: isSmallScreen,
           maxLines: 4,
         ),
       ],
     );
   }
 
-  // 📦 Card
   Widget _buildCard({
     required bool isDark,
+    required bool isSmallScreen,
     required String title,
     required IconData icon,
     required Color color,
@@ -1264,7 +1329,7 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF252836) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
         boxShadow: [
           BoxShadow(
             color: color.withOpacity(0.1),
@@ -1274,16 +1339,15 @@ class _AddTaskScreenState extends State<AddTaskScreen>
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
         child: Stack(
           children: [
-            // Side Accent
             Positioned(
               right: 0,
               top: 0,
               bottom: 0,
               child: Container(
-                width: 5,
+                width: isSmallScreen ? 4 : 5,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -1293,35 +1357,37 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                 ),
               ),
             ),
-
-            // Content
             Padding(
-              padding: const EdgeInsets.all(18),
+              padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                         decoration: BoxDecoration(
                           color: color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
                         ),
-                        child: Icon(icon, color: color, size: 22),
+                        child: Icon(
+                          icon,
+                          color: color,
+                          size: isSmallScreen ? 18 : 22,
+                        ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: isSmallScreen ? 10 : 12),
                       Text(
                         title,
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: isSmallScreen ? 14 : 17,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  SizedBox(height: isSmallScreen ? 14 : 18),
                   ...children,
                 ],
               ),
@@ -1332,13 +1398,13 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 📝 Text Field
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required IconData icon,
     required Color color,
     required bool isDark,
+    required bool isSmallScreen,
     String? Function(String?)? validator,
     TextInputType? keyboardType,
     int maxLines = 1,
@@ -1352,58 +1418,66 @@ class _AddTaskScreenState extends State<AddTaskScreen>
       onChanged: onChanged,
       style: TextStyle(
         color: isDark ? Colors.white : Colors.black87,
-        fontSize: 15,
+        fontSize: isSmallScreen ? 13 : 15,
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.grey[500]),
+        labelStyle: TextStyle(
+          color: Colors.grey[500],
+          fontSize: isSmallScreen ? 12 : 14,
+        ),
         prefixIcon: Container(
-          margin: const EdgeInsets.all(8),
-          padding: const EdgeInsets.all(10),
+          margin: EdgeInsets.all(isSmallScreen ? 6 : 8),
+          padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
           ),
-          child: Icon(icon, color: color, size: 20),
+          child: Icon(
+            icon,
+            color: color,
+            size: isSmallScreen ? 16 : 20,
+          ),
         ),
         filled: true,
         fillColor: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
           borderSide: BorderSide(
             color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
           borderSide: BorderSide(color: color, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
           borderSide: const BorderSide(color: Color(0xFFEF4444)),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
           borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 12 : 16,
+          vertical: isSmallScreen ? 12 : 16,
+        ),
       ),
     );
   }
 
-  // 💾 Save Button
-  Widget _buildSaveButton(bool isDark) {
+  Widget _buildSaveButton(bool isDark, bool isSmallScreen) {
     return SizedBox(
       width: double.infinity,
-      height: 58,
+      height: isSmallScreen ? 48 : 58,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
           gradient: LinearGradient(
             colors: _isSaving
                 ? [Colors.grey, Colors.grey]
@@ -1425,7 +1499,7 @@ class _AddTaskScreenState extends State<AddTaskScreen>
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
             ),
           ),
           child: _isSaving
@@ -1433,18 +1507,18 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      width: 24,
-                      height: 24,
+                      width: isSmallScreen ? 20 : 24,
+                      height: isSmallScreen ? 20 : 24,
                       child: CircularProgressIndicator(
                         color: Colors.white.withOpacity(0.8),
                         strokeWidth: 2.5,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    const Text(
+                    SizedBox(width: isSmallScreen ? 10 : 12),
+                    Text(
                       "جاري الحفظ...",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: isSmallScreen ? 14 : 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -1455,22 +1529,22 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.add_task_rounded,
                         color: Colors.white,
-                        size: 22,
+                        size: isSmallScreen ? 18 : 22,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    const Text(
+                    SizedBox(width: isSmallScreen ? 10 : 12),
+                    Text(
                       "إضافة المهمة",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: isSmallScreen ? 14 : 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -1482,7 +1556,6 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 🔄 Reset Form
   void _resetForm() {
     final isDark = Provider.of<ThemeProvider>(context, listen: false).isDark;
 
@@ -1577,9 +1650,7 @@ class _AddTaskScreenState extends State<AddTaskScreen>
     );
   }
 
-  // 🚪 Exit Confirmation
   void _showExitConfirmation(bool isDark) {
-    // إذا كان الفورم فاضي، ارجع على طول
     if (_titleController.text.isEmpty &&
         _descController.text.isEmpty &&
         _notesController.text.isEmpty) {

@@ -24,6 +24,7 @@ class _ChildFormScreenState extends State<ChildFormScreen>
   final _nameEnController = TextEditingController();
   final _nationalIdController = TextEditingController();
   final _birthDateController = TextEditingController();
+  final _ageController = TextEditingController(); 
 
   final _fatherNameController = TextEditingController();
   final _fatherPhoneController = TextEditingController();
@@ -44,6 +45,9 @@ class _ChildFormScreenState extends State<ChildFormScreen>
   bool _isLoading = false;
   bool _isSaving = false;
   bool _isTranslating = false;
+  
+  
+  
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -67,6 +71,18 @@ class _ChildFormScreenState extends State<ChildFormScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationController.forward();
+   
+  }
+  
+  void _calculateAge(DateTime birthDate) {
+   final today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
+    age--;
+    }
+    setState(() {
+    _ageController.text = "$age سنوات"; // أو ممكن تخليها رقم بس حسب رغبتك
+    });
   }
 
   void _initData() async {
@@ -82,9 +98,15 @@ class _ChildFormScreenState extends State<ChildFormScreen>
           _nameController.text = data['FullNameArabic'] ?? '';
           _nameEnController.text = data['FullNameEnglish'] ?? '';
           _nationalIdController.text = data['NationalID']?.toString() ?? '';
-          _birthDateController.text = data['birthDate'] != null
-              ? data['birthDate'].toString().split('T')[0]
-              : '';
+          if (data['birthDate'] != null) {
+          final dateStr = data['birthDate'].toString().split('T')[0];
+          _birthDateController.text = dateStr;
+  
+          // 2. نحسب العمر فوراً ونحطه في حقل العمر (ده التعديل)
+          _calculateAge(DateTime.parse(dateStr));
+          } else {
+           _birthDateController.text = '';
+          }
           _selectedBranch = data['Branch'];
 
           _fatherNameController.text = data['FatherName'] ?? '';
@@ -129,23 +151,29 @@ class _ChildFormScreenState extends State<ChildFormScreen>
       setState(() {
         _birthDateController.text = DateFormat('yyyy-MM-dd').format(date);
       });
+      _calculateAge(date);
     } catch (e) {}
   }
 
-  void _translate() async {
-    if (_nameController.text.isEmpty) return;
+void _translate() async {
+  if (_nameController.text.isEmpty) return;
+  if (_isTranslating) return;
 
-    setState(() => _isTranslating = true);
-    _extractFatherName(_nameController.text);
+  setState(() => _isTranslating = true);
+  _extractFatherName(_nameController.text);
 
-    String translated = await ApiService.translateName(_nameController.text);
-    if (mounted) {
-      setState(() {
-        _nameEnController.text = translated;
-        _isTranslating = false;
-      });
-    }
+  String translated = await ApiService.translateName(_nameController.text);
+  if (mounted) {
+    setState(() {
+      _nameEnController.text = translated;
+      _isTranslating = false;
+    });
   }
+}
+
+void _onNameChanged(String val) {
+  _extractFatherName(val);
+}
 
   Future<void> _pickDate() async {
     final isDark = Provider.of<ThemeProvider>(context, listen: false).isDark;
@@ -173,6 +201,7 @@ class _ChildFormScreenState extends State<ChildFormScreen>
       setState(() {
         _birthDateController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
+      _calculateAge(picked);
     }
   }
 
@@ -266,6 +295,8 @@ class _ChildFormScreenState extends State<ChildFormScreen>
 
   @override
   void dispose() {
+    
+    
     _animationController.dispose();
     _nameController.dispose();
     _nameEnController.dispose();
@@ -769,93 +800,96 @@ class _ChildFormScreenState extends State<ChildFormScreen>
   }
 
   // 📝 Section 1: البيانات الأساسية
-  List<Widget> _buildBasicDataSection(ChildrenProvider provider, bool isDark) {
-    return [
-      _buildModernTextField(
-        controller: _nameController,
-        label: "الاسم رباعي (عربي)",
-        icon: Icons.person_rounded,
-        isDark: isDark,
-        validator: (v) => v!.isEmpty ? "مطلوب" : null,
-        onChanged: (val) => _extractFatherName(val),
-        onEditingComplete: _translate,
-        suffixIcon: IconButton(
-          icon: _isTranslating
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Color(0xFF6366F1),
-                  ),
-                )
-              : Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.g_translate_rounded,
-                    color: Color(0xFFF59E0B),
-                    size: 20,
-                  ),
-                ),
-          onPressed: _translate,
-        ),
-      ),
-      const SizedBox(height: 16),
-      _buildModernTextField(
-        controller: _nameEnController,
-        label: "الاسم (إنجليزي)",
-        icon: Icons.language_rounded,
-        isDark: isDark,
-      ),
-      const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-            child: _buildModernTextField(
-              controller: _nationalIdController,
-              label: "الرقم القومي",
-              icon: Icons.badge_rounded,
-              isDark: isDark,
-              keyboardType: TextInputType.number,
-              maxLength: 14,
-              onChanged: _extractBirthDateFromID,
+  // 📝 Section 1: البيانات الأساسية (المعدلة)
+List<Widget> _buildBasicDataSection(ChildrenProvider provider, bool isDark) {
+  return [
+    // 1. الاسم
+_buildModernTextField(
+  controller: _nameController,
+  label: "الاسم رباعي (عربي)",
+  icon: Icons.person_rounded,
+  isDark: isDark,
+  validator: (v) => v!.isEmpty ? "مطلوب" : null,
+  onChanged: (val) => _extractFatherName(val),
+  onEditingComplete: _translate,
+),
+    const SizedBox(height: 16),
+
+    // 2. الاسم الإنجليزي
+    _buildModernTextField(
+  controller: _nameEnController,
+  label: "الاسم (إنجليزي)",
+  icon: Icons.language_rounded,
+  isDark: isDark,
+  suffixIcon: _isTranslating
+      ? const Padding(
+          padding: EdgeInsets.all(14),
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Color(0xFF6366F1),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildModernTextField(
-              controller: _birthDateController,
-              label: "تاريخ الميلاد",
-              icon: Icons.calendar_today_rounded,
-              isDark: isDark,
-              readOnly: true,
-              onTap: _pickDate,
-              validator: (v) => v!.isEmpty ? "مطلوب" : null,
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      _buildModernDropdown(
-        value: _selectedBranch,
-        label: "الفرع",
-        icon: Icons.store_rounded,
-        isDark: isDark,
-        items: provider.branches.map<DropdownMenuItem<int>>((branch) {
-          return DropdownMenuItem<int>(
-            value: branch['IDbranch'],
-            child: Text(branch['branchName']),
-          );
-        }).toList(),
-        onChanged: (val) => setState(() => _selectedBranch = val),
-        validator: (v) => v == null ? "مطلوب" : null,
-      ),
-    ];
-  }
+        )
+      : null,
+),
+    const SizedBox(height: 16),
+
+    // 3. الرقم القومي (بقى لوحده في سطر)
+    _buildModernTextField(
+      controller: _nationalIdController,
+      label: "الرقم القومي",
+      icon: Icons.badge_rounded,
+      isDark: isDark,
+      keyboardType: TextInputType.number,
+      maxLength: 14,
+      onChanged: _extractBirthDateFromID, // بيحسب التاريخ والعمر أوتوماتيك
+      validator: (v) => v!.length != 14 ? "يجب أن يكون 14 رقم" : null,
+    ),
+    const SizedBox(height: 16),
+
+    // 4. تاريخ الميلاد (تحته)
+    _buildModernTextField(
+      controller: _birthDateController,
+      label: "تاريخ الميلاد",
+      icon: Icons.calendar_today_rounded,
+      isDark: isDark,
+      readOnly: true,
+      onTap: _pickDate,
+      validator: (v) => v!.isEmpty ? "مطلوب" : null,
+    ),
+    const SizedBox(height: 16),
+
+    // 5. العمر (الجديد - للقراءة فقط)
+    _buildModernTextField(
+      controller: _ageController,
+      label: "العمر الحالي",
+      icon: Icons.cake_rounded,
+      isDark: isDark,
+      readOnly: true, // عشان محدش يعدل عليه يدوياً
+      suffixIcon: const Icon(Icons.auto_awesome, color: Colors.amber), // أيقونة جمالية
+    ),
+    const SizedBox(height: 16),
+
+    // 6. الفرع
+    _buildModernDropdown(
+      value: _selectedBranch,
+      label: "الفرع",
+      icon: Icons.store_rounded,
+      isDark: isDark,
+      items: provider.branches.map<DropdownMenuItem<int>>((branch) {
+        return DropdownMenuItem<int>(
+          value: branch['IDbranch'],
+          child: Text(branch['branchName']),
+        );
+      }).toList(),
+      onChanged: (val) => setState(() => _selectedBranch = val),
+      validator: (v) => v == null ? "مطلوب" : null,
+    ),
+  ];
+}
 
   // 👨‍👩‍👧 Section 2: بيانات ولي الأمر
   List<Widget> _buildParentDataSection(bool isDark) {
@@ -973,31 +1007,33 @@ class _ChildFormScreenState extends State<ChildFormScreen>
   }
 
   // 🔤 Modern Text Field
-  Widget _buildModernTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    required bool isDark,
-    String? Function(String?)? validator,
-    void Function(String)? onChanged,
-    void Function()? onEditingComplete,
-    void Function()? onTap,
-    TextInputType? keyboardType,
-    bool readOnly = false,
-    int maxLines = 1,
-    int? maxLength,
-    Widget? suffixIcon,
-  }) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      onChanged: onChanged,
-      onEditingComplete: onEditingComplete,
-      onTap: onTap,
-      keyboardType: keyboardType,
-      readOnly: readOnly,
-      maxLines: maxLines,
-      maxLength: maxLength,
+Widget _buildModernTextField({
+  required TextEditingController controller,
+  required String label,
+  required IconData icon,
+  required bool isDark,
+  String? Function(String?)? validator,
+  void Function(String)? onChanged,
+  void Function()? onEditingComplete,
+  void Function()? onTap,
+  TextInputType? keyboardType,
+  bool readOnly = false,
+  int maxLines = 1,
+  int? maxLength,
+  Widget? suffixIcon,
+  FocusNode? focusNode,
+}) {
+  return TextFormField(
+    controller: controller,
+    validator: validator,
+    onChanged: onChanged,
+    onEditingComplete: onEditingComplete,
+    onTap: onTap,
+    keyboardType: keyboardType,
+    readOnly: readOnly,
+    maxLines: maxLines,
+    maxLength: maxLength,
+    focusNode: focusNode,
       style: TextStyle(
         color: isDark ? Colors.white : Colors.black87,
         fontSize: 15,

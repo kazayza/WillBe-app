@@ -92,15 +92,16 @@ class AppSections {
     permissionKeys: [
       'frm_Child',
       'frm_ChildNew',
-      'frm_FullSearch',
+      //'frm_FullSearch',
       'frm_absenseChild',
+      'frmClassesDashboard',
     ],
     screens: [
-      SubScreen(
-        formName: 'frm_FullSearch',
-        title: 'بحث عن الأطفال',
-        icon: Icons.search_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frm_FullSearch',
+        //title: 'بحث عن الأطفال',
+        //icon: Icons.search_rounded,
+      //),
       SubScreen(
         formName: 'frm_ChildNew',
         title: 'تسجيل طفل جديد',
@@ -112,6 +113,11 @@ class AppSections {
         icon: Icons.people_rounded,
       ),
       SubScreen(
+        formName: 'frmClassesDashboard',
+        title: 'إدارة الفصول',
+        icon: Icons.class_rounded,
+      ),
+      SubScreen(
         formName: 'frm_absenseChild',
         title: 'غياب الأطفال',
         icon: Icons.event_busy_rounded,
@@ -121,16 +127,16 @@ class AppSections {
         title: 'اشتراكات الطفل',
         icon: Icons.receipt_long_rounded,
       ),
-      SubScreen(
-        formName: 'frm_QChildExport',
-        title: 'استعلام الأطفال',
-        icon: Icons.file_download_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_import',
-        title: 'استيراد البيانات',
-        icon: Icons.upload_file_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frm_QChildExport',
+        //title: 'استعلام الأطفال',
+        //icon: Icons.file_download_rounded,
+      //),
+      //SubScreen(
+        //formName: 'frm_import',
+        //title: 'استيراد البيانات',
+        //icon: Icons.upload_file_rounded,
+      //),
     ],
   );
 
@@ -146,7 +152,9 @@ class AppSections {
     permissionKeys: [
       'Employee List',
       'frm_absenseEmp',
-      'frm_salary',
+      'frm_eshraf',
+      'frm_AllEshraf',
+      'frm_eshrafOnly',
     ],
     screens: [
       SubScreen(
@@ -154,48 +162,19 @@ class AppSections {
         title: 'قائمة الموظفين',
         icon: Icons.people_rounded,
       ),
-      SubScreen(
-        formName: 'frm_EmployeeDetails',
-        title: 'تفاصيل الموظفين',
-        icon: Icons.person_rounded,
-      ),
+      
       SubScreen(
         formName: 'frm_absenseEmp',
         title: 'الحضور والانصراف',
         icon: Icons.fingerprint_rounded,
       ),
-      SubScreen(
-        formName: 'frm_salary',
-        title: 'المرتبات',
-        icon: Icons.payments_rounded,
+        SubScreen(
+      formName: 'frm_eshraf',
+      title: 'الجزاءات والمكافآت',
+      icon: Icons.account_balance_wallet_outlined,
       ),
-      SubScreen(
-        formName: 'frm_qrysalary',
-        title: 'استعلام عن راتب',
-        icon: Icons.search_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_salarycost',
-        title: 'تكلفة الرواتب',
-        icon: Icons.calculate_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_Solfa',
-        title: 'السلف',
-        icon: Icons.money_off_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_Mokafaa',
-        title: 'المكافآت',
-        icon: Icons.card_giftcard_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_Edafy',
-        title: 'الإضافي',
-        icon: Icons.add_circle_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_eshraf',
+        SubScreen(
+        formName: 'frm_eshrafOnly',
         title: 'الإشراف',
         icon: Icons.supervisor_account_rounded,
       ),
@@ -204,11 +183,7 @@ class AppSections {
         title: 'إشراف الموارد البشرية',
         icon: Icons.admin_panel_settings_rounded,
       ),
-      SubScreen(
-        formName: 'frm_empolyeestatus',
-        title: 'حالة الموظفين',
-        icon: Icons.fact_check_rounded,
-      ),
+
     ],
   );
 
@@ -236,6 +211,11 @@ class AppSections {
         formName: 'frmCRMDashboard',
         title: 'لوحة تحكم العملاء',
         icon: Icons.dashboard_customize_rounded,
+      ),
+      SubScreen(
+        formName: 'CRM KPI',
+        title: 'مؤشرات أداء إدارة العملاء',
+        icon: Icons.person_pin,
       ),
       SubScreen(
         formName: 'frmLeads',
@@ -288,11 +268,34 @@ class AppSections {
     permissionKeys: [
       'frm_income',
       'frm_MonthlySubscrip',
+      'IncomeKPI',
+      'frmListIncome',
+      'frm_incomeKindEdite',
+      'frm_PaymentCHildAll',
+      'DebetsKPI',
+      'frm_payment',
+      'frm_IncomBus',
     ],
     screens: [
+      
+      SubScreen(
+        formName: 'IncomeKPI',
+        title: 'مؤشرات أداء الإيرادات',
+        icon: Icons.analytics,
+      ),
+      SubScreen(
+        formName: 'DebetsKPI',
+        title: 'مؤشرات أداء المديونيات',
+        icon: Icons.analytics,
+      ),
+      SubScreen(
+        formName: 'frmListIncome',
+        title: 'كافة الإيرادات',
+        icon: Icons.attach_money_rounded,
+      ),
       SubScreen(
         formName: 'frm_income',
-        title: 'الإيرادات',
+        title: 'إضافة إيراد',
         icon: Icons.attach_money_rounded,
       ),
       SubScreen(
@@ -301,20 +304,15 @@ class AppSections {
         icon: Icons.school_rounded,
       ),
       SubScreen(
-        formName: 'frm_Cours',
-        title: 'اشتراك الكورسات',
-        icon: Icons.menu_book_rounded,
-      ),
-      SubScreen(
         formName: 'frm_IncomBus',
         title: 'اشتراك الباص',
         icon: Icons.directions_bus_rounded,
       ),
-      SubScreen(
-        formName: 'frm_reportincomeDetalis',
-        title: 'استعلام الإيرادات',
-        icon: Icons.search_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frm_reportincomeDetalis',
+        //title: 'استعلام الإيرادات',
+        //icon: Icons.search_rounded,
+      //),
       SubScreen(
         formName: 'frm_incomMoragaa',
         title: 'مراجعة الإيرادات',
@@ -322,7 +320,7 @@ class AppSections {
       ),
       SubScreen(
         formName: 'frm_incomeKindEdite',
-        title: 'تعديل بنود الإيرادات',
+        title: 'بنود الإيرادات',
         icon: Icons.edit_rounded,
       ),
       SubScreen(
@@ -332,14 +330,14 @@ class AppSections {
       ),
       SubScreen(
         formName: 'frm_PaymentCHildAll',
-        title: 'الأقساط غير المسددة',
+        title: 'المديونيات والاقساط',
         icon: Icons.warning_rounded,
       ),
-      SubScreen(
-        formName: 'frm_NullIncome',
-        title: 'أخطاء الإيرادات',
-        icon: Icons.error_outline_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frm_NullIncome',
+        //title: 'أخطاء الإيرادات',
+        //icon: Icons.error_outline_rounded,
+      //),
     ],
   );
 
@@ -355,8 +353,17 @@ class AppSections {
     permissionKeys: [
       'frm_expenses',
       'frm_expSingle',
+      'frm_salary',
+      'frm_expenseKindEdite',
+      'ExpensesKPI',
     ],
     screens: [
+      //ExpensesKPI
+      SubScreen(
+        formName: 'ExpensesKPI',
+        title: 'مؤشر أداء المصروفات',
+        icon: Icons.analytics,
+      ),      
       SubScreen(
         formName: 'frm_expenses',
         title: 'المصروفات',
@@ -368,40 +375,40 @@ class AppSections {
         icon: Icons.add_circle_rounded,
       ),
       SubScreen(
-        formName: 'frm_tbl_expenses',
-        title: 'مصروف فردي جديد',
-        icon: Icons.post_add_rounded,
+        formName: 'frm_salary',
+        title: 'المرتبات',
+        icon: Icons.payments_rounded,
       ),
-      SubScreen(
-        formName: 'frm_ReportExpensekind',
-        title: 'استعلام المصروفات',
-        icon: Icons.search_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_moragaaExpense',
-        title: 'مراجعة المصروفات',
-        icon: Icons.fact_check_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frm_expenseKindEdite',
+        //title: 'استعلام المصروفات',
+        //icon: Icons.search_rounded,
+      //),
+      //SubScreen(
+        //formName: 'frm_moragaaExpense',
+        //title: 'مراجعة المصروفات',
+//        icon: Icons.fact_check_rounded,
+      //),
       SubScreen(
         formName: 'frm_expenseKindEdite',
-        title: 'تعديل بنود المصروفات',
+        title: 'بنود المصروفات',
         icon: Icons.edit_rounded,
       ),
-      SubScreen(
-        formName: 'frm_expenseNOUR1',
-        title: 'كافة المصروفات',
-        icon: Icons.list_alt_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_ExpenseChart',
-        title: 'مخطط بياني',
-        icon: Icons.pie_chart_rounded,
-      ),
-      SubScreen(
-        formName: 'frm_NullExpenses',
-        title: 'أخطاء المصروفات',
-        icon: Icons.error_outline_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frm_expenseNOUR1',
+        //title: 'كافة المصروفات',
+        //icon: Icons.list_alt_rounded,
+      //),
+      //SubScreen(
+        //formName: 'frm_ExpenseChart',
+        //title: 'مخطط بياني',
+//        icon: Icons.pie_chart_rounded,
+      //),
+      //SubScreen(
+        //formName: 'frm_NullExpenses',
+        //title: 'أخطاء المصروفات',
+      //  icon: Icons.error_outline_rounded,
+      //),
     ],
   );
 
@@ -417,6 +424,7 @@ class AppSections {
     permissionKeys: [
       'frm_administrator',
       'frm_QaemaMarkazMaly',
+      'rpt_absenseChild',
     ],
     screens: [
       SubScreen(
@@ -433,6 +441,11 @@ class AppSections {
         formName: 'frm_QryArsedaChild',
         title: 'متابعة الأرصدة',
         icon: Icons.account_balance_wallet_rounded,
+      ),
+      SubScreen(
+        formName: 'rpt_absenseChild',
+        title: 'غياب الأطفال',
+        icon: Icons.assignment_ind_rounded,
       ),
       SubScreen(
         formName: 'frm_QQuery2Plus1',
@@ -474,13 +487,14 @@ class AppSections {
     permissionKeys: [
       'frm_BusRegestration',
       'frm_BusLines',
+      'frm_Qbuslines'
     ],
     screens: [
-      SubScreen(
-        formName: 'frm_BusRegestration',
-        title: 'تسجيل اشتراكات الباص',
-        icon: Icons.app_registration_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frm_BusRegestration',
+        //title: 'تسجيل اشتراكات الباص',
+        //icon: Icons.app_registration_rounded,
+      //),
       SubScreen(
         formName: 'frm_Qbuslines',
         title: 'خطوط سير الباص',
@@ -553,7 +567,8 @@ class AppSections {
       id: 'search_child',
       title: 'بحث',
       icon: Icons.search_rounded,
-      formName: 'frm_FullSearch',
+      formName:'frm_Child',
+      //formName: 'frm_FullSearch',
       gradient: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
     ),
     QuickAction(
