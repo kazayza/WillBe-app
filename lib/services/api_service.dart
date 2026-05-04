@@ -1419,5 +1419,219 @@ static Future<Map<String, dynamic>> updateBusLine(int id, String busLine) async 
   }
 }
 
+// ==================== EMP ATTENDANCE DETAILS ====================
+
+/// جلب تواريخ غياب موظف معين
+static Future<Map<String, dynamic>> getEmpAbsenceDates({
+  required int empId,
+  int? month,
+  int? year,
+  DateTime? fromDate,
+  DateTime? toDate,
+}) async {
+  try {
+    String query = 'emp-attendance/emp-dates?empId=$empId';
+
+    if (fromDate != null && toDate != null) {
+      query += '&fromDate=${fromDate.toIso8601String().split('T')[0]}';
+      query += '&toDate=${toDate.toIso8601String().split('T')[0]}';
+    } else if (month != null && year != null) {
+      query += '&month=$month&year=$year';
+    }
+
+    final response = await get(query);
+    return {
+      'success': true,
+      'totalAbsence': response['totalAbsence'] ?? 0,
+      'data': response['data'] ?? [],
+    };
+  } catch (e) {
+    debugPrint('Error fetching emp absence dates: $e');
+    return {
+      'success': false,
+      'totalAbsence': 0,
+      'data': [],
+    };
+  }
+}
+
+// ==================== SALARY HISTORY ====================
+
+/// جلب سجل رواتب موظف
+static Future<List<dynamic>> getEmployeeSalaryHistory(int empId) async {
+  try {
+    final response = await get('employees/$empId/salary');
+    if (response is List) return response;
+    return [];
+  } catch (e) {
+    debugPrint('Error fetching salary history: $e');
+    return [];
+  }
+}
+
+/// إضافة زيادة راتب
+static Future<Map<String, dynamic>> addEmployeeSalary({
+  required int empId,
+  required double baseSalary,
+  required DateTime increseDate,
+}) async {
+  try {
+    final response = await post('employees/$empId/salary', {
+      'baseSalary': baseSalary,
+      'increseDate': increseDate.toIso8601String(),
+    });
+    return {
+      'success': true,
+      'message': response['message'] ?? 'تم الإضافة بنجاح',
+    };
+  } catch (e) {
+    debugPrint('Error adding salary: $e');
+    return {
+      'success': false,
+      'message': 'فشل الإضافة: $e',
+    };
+  }
+}
+
+/// حذف سجل راتب
+static Future<Map<String, dynamic>> deleteEmployeeSalary({
+  required int empId,
+  required int salaryId,
+}) async {
+  try {
+    final response = await delete('employees/$empId/salary/$salaryId');
+    return {
+      'success': true,
+      'message': response['message'] ?? 'تم الحذف بنجاح',
+    };
+  } catch (e) {
+    debugPrint('Error deleting salary: $e');
+    return {
+      'success': false,
+      'message': 'فشل الحذف: $e',
+    };
+  }
+}
+// ==================== LEADS ASSIGNEES ====================
+
+/// جلب الموظفين المسؤولين عن العملاء (PRUser & HRUser)
+static Future<List<dynamic>> getLeadsAssignees() async {
+  try {
+    final response = await get('users/leads-assignees');
+    if (response is Map && response['success'] == true) {
+      return response['data'] ?? [];
+    }
+    return [];
+  } catch (e) {
+    debugPrint('Error fetching leads assignees: $e');
+    return [];
+  }
+}
+// ==================== LEADS PHONE CHECK ====================
+
+/// التحقق من تكرار رقم الموبايل
+static Future<Map<String, dynamic>> checkLeadPhone(String phone) async {
+  try {
+    final cleanPhone = phone.replaceAll(RegExp(r'[\s\-\+]'), '');
+    final response = await get('leads/check-phone?phone=$cleanPhone');
+    return {
+      'exists': response['exists'] ?? false,
+      'message': response['message'] ?? '',
+      'sourceType': response['sourceType'] ?? '',
+      'data': response['data'],
+    };
+  } catch (e) {
+    debugPrint('Error checking phone: $e');
+    return {'exists': false, 'message': ''};
+  }
+}
+// ==================== BIRTHDAYS ====================
+
+/// جلب أعياد الميلاد القادمة (7 أيام)
+static Future<List<dynamic>> getUpcomingBirthdays() async {
+  try {
+    final response = await get('children/birthdays/upcoming');
+    if (response is List) return response;
+    return [];
+  } catch (e) {
+    debugPrint('Error fetching upcoming birthdays: $e');
+    return [];
+  }
+}
+// ==================== SALARY INQUIRY ====================
+
+/// جلب رواتب شهر معين مع فلاتر
+static Future<Map<String, dynamic>> fetchPayroll({
+  required int month,
+  required int year,
+  int? branchId,
+  int? empId,
+  String? user,
+}) async {
+  try {
+    final response = await post('salaries/fetch', {
+      'month': month,
+      'year': year,
+      'branchId': branchId,
+      'empId': empId,
+      'user': user,
+    });
+
+    return {
+      'success': true,
+      'status': response['status'] ?? 'draft',
+      'expenseId': response['expenseId'],
+      'data': response['data'] ?? [],
+    };
+  } catch (e) {
+    debugPrint('Error fetching payroll: $e');
+    return {
+      'success': false,
+      'status': 'error',
+      'data': [],
+    };
+  }
+}
+/// جلب رواتب بفترة من-إلى
+/// استعلام رواتب من الداتابيز فقط بدون حساب
+static Future<Map<String, dynamic>> queryPayroll({
+  required int fromMonth,
+  required int fromYear,
+  required int toMonth,
+  required int toYear,
+  int? branchId,
+  int? empId,
+}) async {
+  try {
+    String query = 'salaries/query?fromMonth=$fromMonth&fromYear=$fromYear&toMonth=$toMonth&toYear=$toYear';
+if (branchId != null) query += '&branchId=$branchId';
+if (empId != null) query += '&empId=$empId';
+
+final response = await get(query);
+
+    return {
+      'success': true,
+      'count': response['count'] ?? 0,
+      'data': response['data'] ?? [],
+    };
+  } catch (e) {
+    debugPrint('Error querying payroll: $e');
+    return {'success': false, 'count': 0, 'data': []};
+  }
+}
+// ==================== SESSIONS ====================
+
+/// جلب السنوات المالية
+static Future<List<dynamic>> getSessions() async {
+  try {
+    final response = await get('general/sessions');
+    if (response is List) return response;
+    return [];
+  } catch (e) {
+    debugPrint('Error loading sessions: $e');
+    return [];
+  }
+}
+
 }
   

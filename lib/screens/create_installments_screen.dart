@@ -36,7 +36,7 @@ class _CreateInstallmentsScreenState extends State<CreateInstallmentsScreen>
 
   int _numberOfInstallments = 3;
   DateTime _startDate = DateTime.now();
-  List<InstallmentItem> _installments = [];
+  final List<InstallmentItem> _installments = [];
   bool _isLoading = false;
   bool _showTemplates = true;
   String? _selectedTemplateId;

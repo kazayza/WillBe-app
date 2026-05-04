@@ -234,18 +234,21 @@ class _InstallmentCalendarScreenState extends State<InstallmentCalendarScreen> {
           Row(
             children: [
               _buildChip('الكل', dp.calendarSelectedType == 'الكل', () {
-                if (_selectedSessionId != null)
+                if (_selectedSessionId != null) {
                   dp.setCalendarTypeFilter('الكل', _selectedSessionId!);
+                }
               }, isDark),
               const SizedBox(width: 6),
               _buildChip('📚 دراسة', dp.calendarSelectedType == 'دراسة', () {
-                if (_selectedSessionId != null)
+                if (_selectedSessionId != null) {
                   dp.setCalendarTypeFilter('دراسة', _selectedSessionId!);
+                }
               }, isDark),
               const SizedBox(width: 6),
               _buildChip('🚌 باص', dp.calendarSelectedType == 'باص', () {
-                if (_selectedSessionId != null)
+                if (_selectedSessionId != null) {
                   dp.setCalendarTypeFilter('باص', _selectedSessionId!);
+                }
               }, isDark),
             ],
           ),
@@ -584,7 +587,7 @@ class _InstallmentCalendarScreenState extends State<InstallmentCalendarScreen> {
                           const SizedBox(height: 3),
                           FittedBox(
                             child: Text(
-                              '${_formatCurrency(totalUnpaid)}',
+                              _formatCurrency(totalUnpaid),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,

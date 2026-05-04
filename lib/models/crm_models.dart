@@ -271,4 +271,5 @@ class Customer {
 class Interaction {
   final int? interactionId;
   final int? customerId;
-  final int? leadId
+  final int? leadId;
+}

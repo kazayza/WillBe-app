@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -112,12 +111,12 @@ class ClassPdfReportService {
                   children: [
                     pw.Text(
                       'تاريخ الطباعة',
-                      style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                      style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
                     ),
                     pw.SizedBox(height: 2),
                     pw.Text(
                       currentDate,
-                      style: pw.TextStyle(fontSize: 10),
+                      style: const pw.TextStyle(fontSize: 10),
                     ),
                   ],
                 ),
@@ -140,11 +139,11 @@ class ClassPdfReportService {
               children: [
                 pw.Text(
                   'صفحة ${context.pageNumber} من ${context.pagesCount}',
-                  style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                  style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
                 ),
                 pw.Text(
                   'تم إنشاء التقرير بواسطة النظام',
-                  style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                  style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
                 ),
               ],
             ),
@@ -362,7 +361,7 @@ class ClassPdfReportService {
     );
 
     // حساب عدد الصفوف في كل صفحة
-    final int rowsPerPage = 28;
+    const int rowsPerPage = 28;
     final int totalPages = (children.length / rowsPerPage).ceil();
 
     for (int pageIndex = 0; pageIndex < (totalPages == 0 ? 1 : totalPages); pageIndex++) {
@@ -417,8 +416,8 @@ class ClassPdfReportService {
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.end,
                         children: [
-                          pw.Text('تاريخ: $currentDate', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                          pw.Text('صفحة ${pageIndex + 1} من ${totalPages == 0 ? 1 : totalPages}', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                          pw.Text('تاريخ: $currentDate', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                          pw.Text('صفحة ${pageIndex + 1} من ${totalPages == 0 ? 1 : totalPages}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
                         ],
                       ),
                     ],

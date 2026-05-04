@@ -50,7 +50,7 @@ class QuickActions extends StatelessWidget {
                   color: AppColors.secondary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.flash_on,
                   color: AppColors.secondary,
                   size: 20,

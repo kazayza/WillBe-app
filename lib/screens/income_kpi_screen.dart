@@ -240,7 +240,7 @@ class _IncomeKpiScreenState extends State<IncomeKpiScreen> {
                   color: AppColors.error.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(50),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.error_outline,
                   size: 50,
                   color: AppColors.error,

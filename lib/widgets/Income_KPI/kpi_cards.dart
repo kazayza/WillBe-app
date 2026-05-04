@@ -34,7 +34,7 @@ class KpiCards extends StatelessWidget {
             Expanded(
               child: _KpiCard(
                 title: 'المتوسط اليومي',
-                value: '${currency.format((data['dailyAverage'] ?? 0).round())}',
+                value: currency.format((data['dailyAverage'] ?? 0).round()),
                 subtitle: 'ج.م',
                 change: _safeDouble(changes['dailyAverage']),
                 icon: Icons.trending_up,

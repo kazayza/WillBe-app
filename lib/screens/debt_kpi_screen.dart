@@ -1218,7 +1218,7 @@ Widget _buildMonthlyChart(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: Text(
                             _formatCurrency(amount),
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.bold,
                                 color: _green),
@@ -1436,7 +1436,7 @@ Widget _buildMonthlyChart(
                         flex: 2,
                         child: Text('${percent.toStringAsFixed(0)}%',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: _primary)),

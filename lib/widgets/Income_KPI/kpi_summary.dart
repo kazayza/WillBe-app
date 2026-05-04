@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../../models/Income_kpi_analysis_models.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_colors.dart';
-import '../../services/kpi_service.dart';
 
 class SmartSummary extends StatelessWidget {
   final PerformanceAnalysis analysis;

@@ -4,6 +4,10 @@ import '../models/employee_model.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 import 'employee_form_screen.dart';
+import 'employee_absence_details_screen.dart';
+import 'employee_salary_history_screen.dart';
+import 'salary_inquiry_screen.dart';
+import '../providers/auth_provider.dart';
 
 class EmployeeDetailsScreen extends StatefulWidget {
   final Employee employee;
@@ -905,29 +909,87 @@ Widget _buildTag({
               },
             ),
             _buildActionCard(
-              icon: Icons.account_balance_wallet_rounded,
-              label: "سجل الرواتب",
-              color: const Color(0xFF10B981),
-              isDark: isDark,
-              onTap: () {
-                // TODO: Navigate to salary history
-              },
-            ),
+  icon: Icons.account_balance_wallet_rounded,
+  label: "سجل الرواتب",
+  color: const Color(0xFF10B981),
+  isDark: isDark,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SalaryInquiryScreen(
+          empId: widget.employee.id,
+          empName: widget.employee.empName,
+        ),
+      ),
+    );
+  },
+),
             _buildActionCard(
-              icon: Icons.event_busy_rounded,
-              label: "سجل الغياب",
-              color: const Color(0xFFEF4444),
-              isDark: isDark,
-              onTap: () {
-                // TODO: Navigate to absence screen
-              },
-            ),
+  icon: Icons.event_busy_rounded,
+  label: "سجل الغياب",
+  color: const Color(0xFFEF4444),
+  isDark: isDark,
+  onTap: () {
+  final now = DateTime.now();
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => EmployeeAbsenceDetailsScreen(
+        empId: widget.employee.id,
+        empName: widget.employee.empName,
+        job: widget.employee.job,
+        branchName: widget.employee.branchName,
+        month: now.month,
+        year: now.year,
+      ),
+    ),
+  );
+},
+),
             _buildActionCard(
               icon: Icons.assessment_rounded,
-              label: "تقييم الأداء",
+              label: "زيادة الاساسى",
               color: const Color(0xFF8B5CF6),
               isDark: isDark,
-              onTap: () {},
+              onTap: () {
+  final auth = Provider.of<AuthProvider>(context, listen: false);
+  final userRole = auth.user?.role ?? '';
+
+  if (userRole == 'Admin' || userRole == 'AccountantUser') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EmployeeSalaryHistoryScreen(
+          empId: widget.employee.id,
+          empName: widget.employee.empName,
+          job: widget.employee.job,
+          branchName: widget.employee.branchName,
+        ),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.lock_rounded, color: Colors.white),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text('ليس لديك صلاحية للوصول إلى سجل الراتب'),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+},
             ),
             _buildActionCard(
               icon: Icons.history_rounded,

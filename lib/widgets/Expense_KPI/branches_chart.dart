@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../providers/expenses_kpi_provider.dart';
 import '../../models/expenses_kpi_model.dart';
 

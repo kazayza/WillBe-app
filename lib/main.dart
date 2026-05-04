@@ -17,8 +17,8 @@ import 'providers/crm_kpi_provider.dart';
 import 'providers/financial_settings_provider.dart';
 import 'providers/expenses_kpi_provider.dart';
 import 'providers/debt_provider.dart';
-
-
+import 'providers/report_income_kind_provider.dart';  // ✅ أضف هذا
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 
 // ✅ دالة استقبال الإشعارات في الخلفية
@@ -69,6 +69,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => FinancialSettingsProvider()),
         ChangeNotifierProvider(create: (_) => ExpensesKPIProvider()),
         ChangeNotifierProvider(create: (_) => DebtProvider()),
+        // ✅ أضف Provider الجديد هنا
+        ChangeNotifierProvider(create: (_) => ReportIncomeKindProvider()),
       ],
       child: const WillBeeApp(),
     ),
@@ -88,6 +90,16 @@ class WillBeeApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'WILL BE Kindergarten',
+      localizationsDelegates: const [
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+],
+supportedLocales: const [
+  Locale('ar', 'EG'),
+  Locale('en', 'US'),
+],
+//locale: const Locale('ar', 'EG'),
 
       // Light Theme
       theme: ThemeData(

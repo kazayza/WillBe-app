@@ -524,7 +524,7 @@ class _EditLeadScreenState extends State<EditLeadScreen>
       return _buildLoadingDropdown("جاري تحميل المصادر...", isDark);
     }
     return DropdownButtonFormField<int>(
-      value: _selectedSourceId,
+      initialValue: _selectedSourceId,
       items: _sources.map((s) => DropdownMenuItem<int>(
         value: s['id'],
         child: Text(s['name'], style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
@@ -540,7 +540,7 @@ class _EditLeadScreenState extends State<EditLeadScreen>
 
   Widget _buildProgramDropdown(bool isDark) {
     return DropdownButtonFormField<String>(
-      value: _selectedProgram,
+      initialValue: _selectedProgram,
       items: _programs.map((p) => DropdownMenuItem<String>(
         value: p,
         child: Text(p, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
@@ -556,7 +556,7 @@ class _EditLeadScreenState extends State<EditLeadScreen>
       return _buildLoadingDropdown("جاري تحميل الفروع...", isDark);
     }
     return DropdownButtonFormField<int>(
-      value: _selectedBranchId,
+      initialValue: _selectedBranchId,
       items: _branches.map((b) => DropdownMenuItem<int>(
         value: b['id'],
         child: Text(b['name'], style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
@@ -572,7 +572,7 @@ class _EditLeadScreenState extends State<EditLeadScreen>
       return _buildLoadingDropdown("جاري تحميل الموظفين...", isDark);
     }
     return DropdownButtonFormField<int>(
-      value: _selectedAssignedTo,
+      initialValue: _selectedAssignedTo,
       items: _employees.map((e) => DropdownMenuItem<int>(
         value: e['id'],
         child: Text(e['name'], style: TextStyle(color: isDark ? Colors.white : Colors.black87)),

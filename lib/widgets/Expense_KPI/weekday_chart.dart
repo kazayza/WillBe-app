@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../providers/expenses_kpi_provider.dart';
-import '../../models/expenses_kpi_model.dart';
 
 class WeekdayChart extends StatelessWidget {
   const WeekdayChart({super.key});
@@ -148,8 +147,8 @@ class WeekdayChart extends StatelessWidget {
                       drawVerticalLine: false,
                       horizontalInterval: maxTotal / 4,
                       getDrawingHorizontalLine: (value) {
-                        return FlLine(
-                          color: const Color(0xFFECF0F1),
+                        return const FlLine(
+                          color: Color(0xFFECF0F1),
                           strokeWidth: 1,
                         );
                       },

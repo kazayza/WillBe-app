@@ -45,7 +45,7 @@ class BranchRanking extends StatelessWidget {
                   color: AppColors.warning.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.emoji_events,
                   color: AppColors.warning,
                   size: 20,
@@ -72,7 +72,7 @@ class BranchRanking extends StatelessWidget {
                 ),
                 child: Text(
                   '${branches.length} فرع',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,

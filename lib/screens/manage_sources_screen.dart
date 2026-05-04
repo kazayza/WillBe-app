@@ -566,7 +566,7 @@ class _ManageSourcesScreenState extends State<ManageSourcesScreen>
                   Switch(
                     value: isActive,
                     onChanged: (_) => _toggleStatus(source['SourceID']),
-                    activeColor: const Color(0xFF6366F1),
+                    activeThumbColor: const Color(0xFF6366F1),
                   ),
                   PopupMenuButton(
                     icon: Icon(Icons.more_vert, color: Colors.grey[500]),

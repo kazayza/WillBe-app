@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../models/Income_kpi_analysis_models.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_colors.dart';
-import '../../services/kpi_service.dart';
 
 class AlertsSection extends StatefulWidget {
   final List<KpiAlert> alerts;
@@ -43,7 +42,7 @@ class _AlertsSectionState extends State<AlertsSection> {
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.notifications_active,
                 color: AppColors.warning,
                 size: 20,

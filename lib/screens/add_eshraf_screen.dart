@@ -747,14 +747,18 @@ Widget _buildDatePicker({
 
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final filteredEmployees = searchQuery.isEmpty
-                ? _employees
-                : _employees.where((e) {
-                    final name = (e['empName'] ?? '').toString().toLowerCase();
-                    final job = (e['job'] ?? '').toString().toLowerCase();
-                    return name.contains(searchQuery.toLowerCase()) ||
-                        job.contains(searchQuery.toLowerCase());
-                  }).toList();
+            final activeEmployees = _employees.where((e) {
+  return e['empstatus'] == true || e['empstatus'] == 1;
+}).toList();
+
+final filteredEmployees = searchQuery.isEmpty
+    ? activeEmployees
+    : activeEmployees.where((e) {
+        final name = (e['empName'] ?? '').toString().toLowerCase();
+        final job = (e['job'] ?? '').toString().toLowerCase();
+        return name.contains(searchQuery.toLowerCase()) ||
+            job.contains(searchQuery.toLowerCase());
+      }).toList();
 
             return Container(
               height: MediaQuery.of(context).size.height * 0.7,
@@ -1012,7 +1016,7 @@ Widget _buildDatePicker({
 
                     // النوع
                     DropdownButtonFormField<String>(
-                      value: _selectedTypeId,
+                      initialValue: _selectedTypeId,
                       decoration: InputDecoration(
                         labelText: 'النوع',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

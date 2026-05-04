@@ -1055,7 +1055,7 @@ if (_isBus && _subscriptionData!['finance']?['BusLineName'] != null)
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
+        const Icon(
           Icons.directions_bus_rounded,
           size: 14,
           color: _warningColor,
@@ -1063,7 +1063,7 @@ if (_isBus && _subscriptionData!['finance']?['BusLineName'] != null)
         const SizedBox(width: 4),
         Text(
           _subscriptionData!['finance']?['BusLineName'] ?? '',
-          style: TextStyle(
+          style: const TextStyle(
             color: _warningColor,
             fontSize: 12,
             fontWeight: FontWeight.w600,

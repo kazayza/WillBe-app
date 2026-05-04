@@ -75,8 +75,8 @@ class DailyTrendChart extends StatelessWidget {
                       drawVerticalLine: false,
                       horizontalInterval: _getMaxValue(dailyTrend) / 4,
                       getDrawingHorizontalLine: (value) {
-                        return FlLine(
-                          color: const Color(0xFFECF0F1),
+                        return const FlLine(
+                          color: Color(0xFFECF0F1),
                           strokeWidth: 1,
                         );
                       },

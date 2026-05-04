@@ -195,7 +195,7 @@ class _AttendanceChildrenScreenState extends State<AttendanceChildrenScreen> {
                     Expanded(
                       child: DropdownButtonFormField<int>(
                         isExpanded: true, // 👈 الحل السحري
-                        value: _selectedBranchId,
+                        initialValue: _selectedBranchId,
                         hint: const Text(
                           "اختر الفرع", 
                           style: TextStyle(fontSize: 13), 
@@ -222,7 +222,7 @@ class _AttendanceChildrenScreenState extends State<AttendanceChildrenScreen> {
                     Expanded(
                       child: DropdownButtonFormField<int>(
                         isExpanded: true, // 👈 الحل السحري
-                        value: _selectedClassId,
+                        initialValue: _selectedClassId,
                         hint: const Text(
                           "اختر الفصل", 
                           style: TextStyle(fontSize: 13),
@@ -396,7 +396,7 @@ class _AttendanceChildrenScreenState extends State<AttendanceChildrenScreen> {
               ),
             Switch(
               value: !isAbsent, // True = حضور
-              activeColor: const Color(0xFF10B981),
+              activeThumbColor: const Color(0xFF10B981),
               activeTrackColor: const Color(0xFF10B981).withOpacity(0.2),
               inactiveThumbColor: Colors.red,
               inactiveTrackColor: Colors.red.withOpacity(0.2),

@@ -458,10 +458,10 @@ class _AllIncomesScreenState extends State<AllIncomesScreen>
               color: _warningColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
+            child: const Row(
               children: [
                 Icon(Icons.warning_amber_rounded, color: _warningColor, size: 20),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'هذا الإجراء لا يمكن التراجع عنه!',
@@ -1404,7 +1404,7 @@ class _AllIncomesScreenState extends State<AllIncomesScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('${_currencyFormat.format(item['incomeAmount'] ?? 0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _successColor)),
+                      Text(_currencyFormat.format(item['incomeAmount'] ?? 0), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _successColor)),
                       const Text('ج.م', style: TextStyle(fontSize: 11, color: Colors.grey)),
                       if (item['ReceiptNumber'] != null)
                         Container(
@@ -1783,7 +1783,7 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
     final validValue = (value != null && items.any((item) => item[valueKey] == value)) ? value : null;
 
     return DropdownButtonFormField<int>(
-      value: validValue,
+      initialValue: validValue,
       isExpanded: true,
       items: items.map<DropdownMenuItem<int>>((item) => DropdownMenuItem(
       value: item[valueKey],

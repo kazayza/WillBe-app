@@ -157,9 +157,7 @@ class _AddTaskScreenState extends State<AddTaskScreen>
                   )
                 : const ColorScheme.light(
                     primary: Color(0xFFF59E0B),
-                  ),
-            dialogBackgroundColor:
-                isDark ? const Color(0xFF252836) : Colors.white,
+                  ), dialogTheme: DialogThemeData(backgroundColor: isDark ? const Color(0xFF252836) : Colors.white),
           ),
           child: child!,
         );

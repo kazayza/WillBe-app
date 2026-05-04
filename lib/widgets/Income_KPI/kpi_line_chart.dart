@@ -74,7 +74,7 @@ class _KpiLineChartState extends State<KpiLineChart> {
                       color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.show_chart,
                       color: AppColors.primary,
                       size: 20,
@@ -469,7 +469,7 @@ class _KpiLineChartState extends State<KpiLineChart> {
             children: [
               Text(
                 _getLabel(currentPoint, _touchedIndex!),
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                   color: AppColors.primary,

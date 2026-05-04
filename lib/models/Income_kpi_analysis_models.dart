@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../services/kpi_service.dart';
 
 // ══════════════════════════════════════════════════════════════
@@ -175,7 +174,7 @@ class PerformanceAnalysis {
     ));
 
     // التوقعات
-    final daysInMonth = 30;
+    const daysInMonth = 30;
     final daysPassed = currentKPIs.activeDays > 0 ? currentKPIs.activeDays : 1;
     final projectedAmount =
         (currentKPIs.totalAmount / daysPassed) * daysInMonth;

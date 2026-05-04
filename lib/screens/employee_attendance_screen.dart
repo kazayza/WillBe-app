@@ -34,8 +34,8 @@ class _EmployeeAttendanceScreenState extends State<EmployeeAttendanceScreen>
   int? _masterId;
 
   // الموظفين المختارين حالياً (محفوظين + جدد)
-  Set<int> _selectedAbsentIds = {};
-  Map<int, String> _notesMap = {};
+  final Set<int> _selectedAbsentIds = {};
+  final Map<int, String> _notesMap = {};
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -245,9 +245,9 @@ Future<void> _fetchSavedAttendance() async {
                               ),
                               Text(
                                 "${tempSelected.length} موظف مختار",
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 13,
-                                  color: const Color(0xFFEF4444),
+                                  color: Color(0xFFEF4444),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -1122,9 +1122,7 @@ Future<void> _fetchSavedAttendance() async {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              "لديك تغييرات غير محفوظة" +
-              (newCount > 0 ? " • $newCount جديد" : "") +
-              (removedCount > 0 ? " • $removedCount محذوف" : ""),
+              "لديك تغييرات غير محفوظة${newCount > 0 ? " • $newCount جديد" : ""}${removedCount > 0 ? " • $removedCount محذوف" : ""}",
               style: const TextStyle(
                 color: Color(0xFFF59E0B),
                 fontSize: 13,
@@ -1444,7 +1442,7 @@ Future<void> _fetchSavedAttendance() async {
           ),
           const SizedBox(height: 8),
           Text(
-            "جميع الموظفين حاضرين لهذا اليوم 🎉\nأو اضغط لاختيار الغائبين",
+            "جميع الموظفين حاضرين لهذا اليوم أو اضغط لاختيار الغائبين",
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],

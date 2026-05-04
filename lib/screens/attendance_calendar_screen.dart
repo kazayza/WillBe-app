@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 import 'employee_attendance_screen.dart';
@@ -18,7 +17,7 @@ class _AttendanceCalendarScreenState extends State<AttendanceCalendarScreen>
     with SingleTickerProviderStateMixin {
   
   bool _isLoading = true;
-  Map<int, int> _absenceData = {}; // day -> absentCount
+  final Map<int, int> _absenceData = {}; // day -> absentCount
   
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
@@ -917,7 +916,7 @@ class _AttendanceCalendarScreenState extends State<AttendanceCalendarScreen>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => EmployeeAttendanceScreen(),
+              builder: (_) => const EmployeeAttendanceScreen(),
             ),
           ).then((_) => _loadData());
         },

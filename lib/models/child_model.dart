@@ -32,9 +32,7 @@ class Child {
       age: json['Age'],
       branchId: json['Branch'],
       status: json['Status'] == true || json['Status'] == 1,
-      addTime: json['Addtime'] != null 
-          ? json['Addtime'].toString() 
-          : null,
+      addTime: json['Addtime']?.toString(),
       sessionId: json['SessionID'],
     );
   }

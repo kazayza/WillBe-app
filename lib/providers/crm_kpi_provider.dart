@@ -123,10 +123,8 @@ Future<void> loadAllData() async {
 
     try {
       final result = await ApiService.getBranches();
-      if (result is List) {
-        _branches = result.map((e) => Branch.fromJson(e)).toList();
-      }
-    } catch (e) {
+      _branches = result.map((e) => Branch.fromJson(e)).toList();
+        } catch (e) {
       debugPrint('Error loading branches: $e');
     }
   }

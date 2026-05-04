@@ -548,9 +548,9 @@ void _onNameChanged(String val) {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.checklist_rounded,
-                color: const Color(0xFF6366F1),
+                color: Color(0xFF6366F1),
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -1094,7 +1094,7 @@ Widget _buildModernTextField({
     String? Function(int?)? validator,
   }) {
     return DropdownButtonFormField<int>(
-      value: value,
+      initialValue: value,
       items: items,
       onChanged: onChanged,
       validator: validator,
@@ -1184,7 +1184,7 @@ Widget _buildModernTextField({
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: color,
+            activeThumbColor: color,
             activeTrackColor: color.withOpacity(0.3),
             inactiveThumbColor: Colors.grey[400],
             inactiveTrackColor: Colors.grey[300],

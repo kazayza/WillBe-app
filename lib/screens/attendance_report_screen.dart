@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
+import 'employee_absence_details_screen.dart';
 
 class AttendanceReportScreen extends StatefulWidget {
   final int month;
@@ -22,7 +22,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen>
     with SingleTickerProviderStateMixin {
   
   bool _isLoading = true;
-  List<Map<String, dynamic>> _employeesReport = [];
+  final List<Map<String, dynamic>> _employeesReport = [];
   
   int _selectedMonth = 0;
   int _selectedYear = 0;
@@ -517,8 +517,24 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen>
           child: Opacity(opacity: value, child: child),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EmployeeAbsenceDetailsScreen(
+          empId: employee['empId'],
+          empName: employee['empName'],
+          job: employee['job'],
+          branchName: employee['branchName'],
+          month: _selectedMonth,
+          year: _selectedYear,
+        ),
+      ),
+    );
+  },
+  child: Container(
+    margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF252836) : Colors.white,
           borderRadius: BorderRadius.circular(18),
@@ -682,6 +698,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen>
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -707,7 +724,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen>
             ),
             const SizedBox(height: 20),
             Text(
-              "لا يوجد غياب! 🎉",
+              "لا يوجد غياب! ",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

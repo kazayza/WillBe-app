@@ -127,8 +127,8 @@ class UpdateService {
               }
 
               return AlertDialog(
-                title: Row(
-                  children: const [
+                title: const Row(
+                  children: [
                     Icon(Icons.downloading, color: Color(0xFF6366F1)),
                     SizedBox(width: 10),
                     Text('جاري التحميل'),
@@ -248,8 +248,8 @@ class UpdateService {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: Row(
-          children: const [
+        title: const Row(
+          children: [
             Icon(Icons.system_update, color: Color(0xFF6366F1)),
             SizedBox(width: 10),
             Text('تحديث جديد متوفر'),

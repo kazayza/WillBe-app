@@ -781,7 +781,7 @@ class _ViewInstallmentsScreenState extends State<ViewInstallmentsScreen>
             children: [
               _buildHeaderStat(
                 'المطلوب',
-                '${_currencyFormat.format(widget.totalAmount)}',
+                _currencyFormat.format(widget.totalAmount),
                 Icons.account_balance_wallet_rounded,
               ),
               Container(
@@ -791,7 +791,7 @@ class _ViewInstallmentsScreenState extends State<ViewInstallmentsScreen>
               ),
               _buildHeaderStat(
                 'المدفوع',
-                '${_currencyFormat.format(_paidAmount)}',
+                _currencyFormat.format(_paidAmount),
                 Icons.check_circle_rounded,
               ),
               Container(
@@ -801,7 +801,7 @@ class _ViewInstallmentsScreenState extends State<ViewInstallmentsScreen>
               ),
               _buildHeaderStat(
                 'المتبقي',
-                '${_currencyFormat.format(_remainingAmount)}',
+                _currencyFormat.format(_remainingAmount),
                 Icons.pending_rounded,
               ),
             ],

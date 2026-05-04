@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui';
 
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
@@ -16,15 +15,14 @@ import 'children_list_screen.dart';
 import 'child_form_screen.dart';
 import 'employees_list_screen.dart';
 import 'employee_attendance_screen.dart';
-import 'AttendanceHistoryScreen.dart';
 import 'expenses_list_screen.dart';
 import 'section_screens_page.dart'; 
 import 'change_password_screen.dart';
 import 'notifications_screen.dart';
 import 'tasks_list_screen.dart';
-import 'add_task_screen.dart';
 import 'add_expense_screen.dart';
 import 'general_income_screen.dart';
+import 'payroll_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,7 +42,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _pendingTasksCount = 0;
   int _unreadNotificationsCount = 0;
   List<Map<String, dynamic>> _todayBirthdays = [];
-  List<Map<String, dynamic>> _alerts = [];
+  List<Map<String, dynamic>> _upcomingBirthdays = [];
+  final List<Map<String, dynamic>> _alerts = [];
 
   // Animation Controllers
   late AnimationController _fadeController;
@@ -119,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _loadStats(),
       _loadPendingTasks(),
       _loadTodayBirthdays(),
+      _loadUpcomingBirthdays(),
       _loadAlerts(),
     ]);
 
@@ -152,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _loadStats(),
       _loadPendingTasks(),
       _loadTodayBirthdays(),
+      _loadUpcomingBirthdays(),
     ]);
 
     if (mounted) {
@@ -193,6 +194,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
     } catch (e) {
       debugPrint('Error loading birthdays: $e');
+    }
+  }
+
+  Future<void> _loadUpcomingBirthdays() async {
+    try {
+      final data = await ApiService.getUpcomingBirthdays();
+      if (mounted && data is List) {
+        setState(() => _upcomingBirthdays = data.cast<Map<String, dynamic>>());
+      }
+    } catch (e) {
+      debugPrint('Error loading upcoming birthdays: $e');
     }
   }
 
@@ -320,9 +332,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               const SizedBox(height: 28),
 
                               // 4️⃣ Alerts Section (لو فيه)
-                              if (_todayBirthdays.isNotEmpty || _pendingTasksCount > 0)
+                              if (_todayBirthdays.isNotEmpty || _upcomingBirthdays.isNotEmpty || _pendingTasksCount > 0)
                                 _buildAlertsSection(isDark),
-                              if (_todayBirthdays.isNotEmpty || _pendingTasksCount > 0)
+                              if (_todayBirthdays.isNotEmpty || _upcomingBirthdays.isNotEmpty || _pendingTasksCount > 0)
                                 const SizedBox(height: 28),
 
                               // 5️⃣ Main Sections
@@ -1005,7 +1017,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               alignment: Alignment.centerRight,
               child: Text(
                 isCurrency
-                    ? "${_formatNumber(value)}"
+                    ? _formatNumber(value)
                     : value.toString(),
                 style: const TextStyle(
                   fontSize: 26,
@@ -1104,8 +1116,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-
-
   Widget _buildLoadingWidget(bool isDark) {
     return Container(
       decoration: BoxDecoration(
@@ -1154,8 +1164,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
     );
   }
-
-
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ⚡ QUICK ACTIONS SECTION
@@ -1304,6 +1312,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ));
     }
 
+    if (_upcomingBirthdays.isNotEmpty) {
+      alerts.add(_AlertItem(
+        icon: Icons.upcoming_rounded,
+        title: "أعياد ميلاد قادمة 🎈",
+        subtitle: "${_upcomingBirthdays.length} خلال الأسبوع القادم",
+        gradient: [const Color(0xFF8B5CF6), const Color(0xFFA78BFA)],
+        onTap: () => _showUpcomingBirthdaysSheet(isDark),
+      ));
+    }
+
     // إضافة تنبيه المهام المعلقة
     if (_pendingTasksCount > 0) {
       alerts.add(_AlertItem(
@@ -1319,9 +1337,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     },
       ));
     }
-
-    // يمكن إضافة المزيد من التنبيهات لاحقاً
-    // مثل: الأقساط المتأخرة، الغياب، إلخ
 
     if (alerts.isEmpty) return const SizedBox.shrink();
 
@@ -2034,6 +2049,185 @@ Widget _buildSectionCard({
     );
   }
 
+  void _showUpcomingBirthdaysSheet(bool isDark) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (ctx) {
+      return Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[700] : Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.upcoming_rounded,
+                        color: Colors.white, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "🎈 أعياد ميلاد قادمة",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          "${_upcomingBirthdays.length} خلال الأسبوع القادم",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(
+              height: 1,
+              color: isDark ? Colors.grey[800] : Colors.grey[200],
+            ),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.all(16),
+                itemCount: _upcomingBirthdays.length,
+                itemBuilder: (context, index) {
+                  final child = _upcomingBirthdays[index];
+                  final daysUntil = child['daysUntilBirthday'] ?? 0;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF252836)
+                          : const Color(0xFFF5F3FF),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Center(
+                            child: Text(
+                              (child['childName'] ?? '؟')[0],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                child['childName'] ?? '',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                daysUntil == 0
+                                    ? 'اليوم! 🎂'
+                                    : daysUntil == 1
+                                        ? 'بكرة 🎈'
+                                        : 'بعد $daysUntil أيام',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: daysUntil == 0
+                                      ? const Color(0xFFEC4899)
+                                      : (isDark
+                                          ? Colors.grey[400]
+                                          : Colors.grey[600]),
+                                  fontWeight: daysUntil <= 1
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${(child['age'] ?? 0) + 1} سنة',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
   Widget _buildBirthdayListItem({
     required String name,
     required String age,
@@ -2113,7 +2307,7 @@ Widget _buildSectionCard({
                 const Text("🎂", style: TextStyle(fontSize: 12)),
                 const SizedBox(width: 4),
                 Text(
-                  "$age",
+                  age,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -2183,7 +2377,13 @@ Widget _buildSectionCard({
           MaterialPageRoute(builder: (_) => const GeneralIncomeScreen()),
         );
         break;
-       
+       case 'frm_salary':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) =>  const PayrollScreen()),
+        );
+        break;
+
        //GeneralIncomeScreen
       // أضف باقي الشاشات هنا...
 

@@ -394,11 +394,11 @@ class _UnifiedInteractionsScreenState extends State<UnifiedInteractionsScreen> {
 void _showAddInteractionSheet() {
   final isDark = Provider.of<ThemeProvider>(context, listen: false).isDark;
   
-  String _interactionType = 'Call';
-  final _subjectController = TextEditingController();
-  final _detailsController = TextEditingController();
-  String _outcome = 'Pending';
-  bool _isSaving = false;
+  String interactionType = 'Call';
+  final subjectController = TextEditingController();
+  final detailsController = TextEditingController();
+  String outcome = 'Pending';
+  bool isSaving = false;
 
   showModalBottomSheet(
     context: context,
@@ -498,40 +498,40 @@ void _showAddInteractionSheet() {
                               icon: Icons.call_rounded,
                               label: 'مكالمة',
                               value: 'Call',
-                              selected: _interactionType,
+                              selected: interactionType,
                               color: const Color(0xFF10B981),
                               isDark: isDark,
-                              onTap: () => setModalState(() => _interactionType = 'Call'),
+                              onTap: () => setModalState(() => interactionType = 'Call'),
                             ),
                             const SizedBox(width: 10),
                             _buildTypeOption(
                               icon: Icons.chat_rounded,
                               label: 'واتساب',
                               value: 'WhatsApp',
-                              selected: _interactionType,
+                              selected: interactionType,
                               color: const Color(0xFF25D366),
                               isDark: isDark,
-                              onTap: () => setModalState(() => _interactionType = 'WhatsApp'),
+                              onTap: () => setModalState(() => interactionType = 'WhatsApp'),
                             ),
                             const SizedBox(width: 10),
                             _buildTypeOption(
                               icon: Icons.meeting_room_rounded,
                               label: 'زيارة',
                               value: 'Visit',
-                              selected: _interactionType,
+                              selected: interactionType,
                               color: const Color(0xFFF59E0B),
                               isDark: isDark,
-                              onTap: () => setModalState(() => _interactionType = 'Visit'),
+                              onTap: () => setModalState(() => interactionType = 'Visit'),
                             ),
                             const SizedBox(width: 10),
                             _buildTypeOption(
                               icon: Icons.email_rounded,
                               label: 'بريد',
                               value: 'Email',
-                              selected: _interactionType,
+                              selected: interactionType,
                               color: const Color(0xFF3B82F6),
                               isDark: isDark,
-                              onTap: () => setModalState(() => _interactionType = 'Email'),
+                              onTap: () => setModalState(() => interactionType = 'Email'),
                             ),
                           ],
                         ),
@@ -548,7 +548,7 @@ void _showAddInteractionSheet() {
                         ),
                         const SizedBox(height: 10),
                         TextField(
-                          controller: _subjectController,
+                          controller: subjectController,
                           decoration: InputDecoration(
                             hintText: 'مثال: استفسار عن الأسعار',
                             filled: true,
@@ -573,7 +573,7 @@ void _showAddInteractionSheet() {
                         ),
                         const SizedBox(height: 10),
                         TextField(
-                          controller: _detailsController,
+                          controller: detailsController,
                           maxLines: 4,
                           decoration: InputDecoration(
                             hintText: 'اكتب تفاصيل المحادثة...',
@@ -601,11 +601,11 @@ void _showAddInteractionSheet() {
                           spacing: 10,
                           runSpacing: 10,
                           children: [
-                            _buildOutcomeChip('قيد المتابعة', 'Pending', _outcome, const Color(0xFFF59E0B), isDark, () => setModalState(() => _outcome = 'Pending')),
-                            _buildOutcomeChip('مهتم', 'Interested', _outcome, const Color(0xFF10B981), isDark, () => setModalState(() => _outcome = 'Interested')),
-                            _buildOutcomeChip('غير مهتم', 'Not Interested', _outcome, const Color(0xFFEF4444), isDark, () => setModalState(() => _outcome = 'Not Interested')),
-                            _buildOutcomeChip('معاودة الاتصال', 'Callback', _outcome, const Color(0xFF3B82F6), isDark, () => setModalState(() => _outcome = 'Callback')),
-                            _buildOutcomeChip('تم الإغلاق', 'Closed', _outcome, const Color(0xFF8B5CF6), isDark, () => setModalState(() => _outcome = 'Closed')),
+                            _buildOutcomeChip('قيد المتابعة', 'Pending', outcome, const Color(0xFFF59E0B), isDark, () => setModalState(() => outcome = 'Pending')),
+                            _buildOutcomeChip('مهتم', 'Interested', outcome, const Color(0xFF10B981), isDark, () => setModalState(() => outcome = 'Interested')),
+                            _buildOutcomeChip('غير مهتم', 'Not Interested', outcome, const Color(0xFFEF4444), isDark, () => setModalState(() => outcome = 'Not Interested')),
+                            _buildOutcomeChip('معاودة الاتصال', 'Callback', outcome, const Color(0xFF3B82F6), isDark, () => setModalState(() => outcome = 'Callback')),
+                            _buildOutcomeChip('تم الإغلاق', 'Closed', outcome, const Color(0xFF8B5CF6), isDark, () => setModalState(() => outcome = 'Closed')),
                           ],
                         ),
                       ],
@@ -629,10 +629,10 @@ void _showAddInteractionSheet() {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isSaving
+                      onPressed: isSaving
                           ? null
                           : () async {
-                              if (_subjectController.text.isEmpty) {
+                              if (subjectController.text.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('يرجى إدخال موضوع التواصل'),
@@ -642,17 +642,17 @@ void _showAddInteractionSheet() {
                                 return;
                               }
 
-                              setModalState(() => _isSaving = true);
+                              setModalState(() => isSaving = true);
 
                               try {
                                 final isLead = _selectedContact['ContactType'] == 'Lead';
                                 await ApiService.post('interactions', {
   if (isLead) 'leadId': _selectedContact['ID'],
   if (!isLead) 'customerId': _selectedContact['ID'],
-  'type': _interactionType,
-  'subject': _subjectController.text,
-  'details': _detailsController.text,
-  'outcome': _outcome,
+  'type': interactionType,
+  'subject': subjectController.text,
+  'details': detailsController.text,
+  'outcome': outcome,
   'interactionDate': DateTime.now().toIso8601String(),
 });
 
@@ -678,7 +678,7 @@ void _showAddInteractionSheet() {
                                   _loadInteractions(_selectedContact);
                                 }
                               } catch (e) {
-                                setModalState(() => _isSaving = false);
+                                setModalState(() => isSaving = false);
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -698,7 +698,7 @@ void _showAddInteractionSheet() {
                         ),
                         elevation: 0,
                       ),
-                      child: _isSaving
+                      child: isSaving
                           ? const SizedBox(
                               width: 24,
                               height: 24,

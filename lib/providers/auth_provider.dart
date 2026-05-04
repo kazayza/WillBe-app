@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../services/notification_service.dart';
 import '../models/user_model.dart';
 
+
 class AuthProvider with ChangeNotifier {
   User? _user;
   List<Permission> _permissions = [];
@@ -52,7 +53,7 @@ class AuthProvider with ChangeNotifier {
     try {
       String? token = await NotificationService.getToken();
       if (token != null && _user != null) {
-        await ApiService.updateFcmToken(_user!.userId!, token);
+        await ApiService.updateFcmToken(_user!.userId, token);
         print('FCM Token saved successfully');
       }
     } catch (e) {

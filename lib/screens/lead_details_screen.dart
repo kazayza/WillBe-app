@@ -401,6 +401,8 @@ Widget _buildNextFollowUpCard(bool isDark) {
         return const Color(0xFF10B981);
       case 'Lost':
         return const Color(0xFF6B7280);
+      case 'Rejected':
+        return const Color(0xFFEF4444);
       default:
         return Colors.grey;
     }
@@ -422,6 +424,8 @@ Widget _buildNextFollowUpCard(bool isDark) {
         return 'تم التحويل';
       case 'Lost':
         return 'خسرناه';
+      case 'Rejected':
+        return 'مرفوض';
       default:
         return 'غير معروف';
     }
@@ -443,6 +447,8 @@ Widget _buildNextFollowUpCard(bool isDark) {
         return Icons.check_circle_rounded;
       case 'Lost':
         return Icons.cancel_rounded;
+      case 'Rejected':
+        return Icons.block_rounded;
       default:
         return Icons.help_outline_rounded;
     }
@@ -748,7 +754,12 @@ void _showChangeStatusSheet() {
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     builder: (ctx) {
+      // ✅ حساب أقصى ارتفاع متاح
+      final maxHeight = MediaQuery.of(ctx).size.height * 0.85;
+      
       return Container(
+        // ✅ تحديد أقصى ارتفاع
+        constraints: BoxConstraints(maxHeight: maxHeight),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF252836) : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -756,7 +767,7 @@ void _showChangeStatusSheet() {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
+            // ✅ Handle (ثابت في الأعلى)
             Container(
               margin: const EdgeInsets.only(top: 12),
               width: 40,
@@ -767,7 +778,7 @@ void _showChangeStatusSheet() {
               ),
             ),
 
-            // Header
+            // ✅ Header (ثابت)
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
@@ -809,117 +820,122 @@ void _showChangeStatusSheet() {
 
             Divider(height: 1, color: isDark ? Colors.grey[800] : Colors.grey[200]),
 
-            // Loading State
-            if (_isLoadingStatuses)
-              const Padding(
-                padding: EdgeInsets.all(40),
-                child: CircularProgressIndicator(),
-              )
-            // Status Options
-            else
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: _statuses.map((status) {
-                    final statusName = status['StatusName']?.toString() ?? '';
-                    final statusLabel = status['StatusLabel']?.toString() ?? '';
-                    final statusColor = _parseColor(status['StatusColor']?.toString());
-                    final isSelected = currentStatus == statusName;
-                    final isConverted = currentStatus == 'Converted';
+            // ✅ المحتوى القابل للـ Scroll
+            Flexible(
+              child: _isLoadingStatuses
+                  ? const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: CircularProgressIndicator(),
+                    )
+                  : SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          // ✅ الحالات
+                          ..._statuses.map((status) {
+                            final statusName = status['StatusName']?.toString() ?? '';
+                            final statusLabel = status['StatusLabel']?.toString() ?? '';
+                            final statusColor = _parseColor(status['StatusColor']?.toString());
+                            final isSelected = currentStatus == statusName;
+                            final isConverted = currentStatus == 'Converted';
 
-                    return GestureDetector(
-                      onTap: isConverted
-                          ? null
-                          : () => _updateLeadStatus(statusName, ctx),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? statusColor.withOpacity(0.15)
-                              : (isDark ? const Color(0xFF1E1E2E) : Colors.grey[50]),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected ? statusColor : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [statusColor, statusColor.withOpacity(0.7)],
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                _getStatusIcon(statusName),
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                statusLabel,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                              ),
-                            ),
-                            if (isSelected)
-                              Container(
-                                padding: const EdgeInsets.all(6),
+                            return GestureDetector(
+                              onTap: isConverted
+                                  ? null
+                                  : () => _updateLeadStatus(statusName, ctx),
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: statusColor,
-                                  shape: BoxShape.circle,
+                                  color: isSelected
+                                      ? statusColor.withOpacity(0.15)
+                                      : (isDark ? const Color(0xFF1E1E2E) : Colors.grey[50]),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isSelected ? statusColor : Colors.transparent,
+                                    width: 2,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.check_rounded,
-                                  color: Colors.white,
-                                  size: 14,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [statusColor, statusColor.withOpacity(0.7)],
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        _getStatusIcon(statusName),
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Text(
+                                        statusLabel,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                          color: isDark ? Colors.white : Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: statusColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.check_rounded,
+                                          color: Colors.white,
+                                          size: 14,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
+                            );
+                          }).toList(),
 
-            // ملاحظة لو محوّل
-            if (currentStatus == 'Converted')
-              Container(
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_rounded, color: Color(0xFF10B981), size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "تم تحويل هذا العميل بالفعل ولا يمكن تغيير حالته",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                          // ✅ ملاحظة لو محوّل
+                          if (currentStatus == 'Converted')
+                            Container(
+                              margin: const EdgeInsets.only(top: 6),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.info_rounded, color: Color(0xFF10B981), size: 20),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      "تم تحويل هذا العميل بالفعل ولا يمكن تغيير حالته",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
+            ),
 
-            SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
+            // ✅ Safe Area للـ Bottom
+            SizedBox(height: MediaQuery.of(ctx).padding.bottom + 10),
           ],
         ),
       );

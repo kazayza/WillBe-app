@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
@@ -518,17 +517,17 @@ class ExpensesKPIPdfService {
               pw.SizedBox(width: 8),
               pw.Expanded(child: _buildStatBox('أيام نشطة', '${adv.activeDays}', greenColor, lightGray, boldStyle, baseStyle)),
               pw.SizedBox(width: 8),
-              pw.Expanded(child: _buildStatBox('متوسط المعاملة', '${_formatNumber(adv.avgPerTransaction)}', purpleColor, lightGray, boldStyle, baseStyle)),
+              pw.Expanded(child: _buildStatBox('متوسط المعاملة', _formatNumber(adv.avgPerTransaction), purpleColor, lightGray, boldStyle, baseStyle)),
             ],
           ),
           pw.SizedBox(height: 8),
           pw.Row(
             children: [
-              pw.Expanded(child: _buildStatBox('أعلى مصروف', '${_formatNumber(adv.maxSingleExpense)}', redColor, lightGray, boldStyle, baseStyle)),
+              pw.Expanded(child: _buildStatBox('أعلى مصروف', _formatNumber(adv.maxSingleExpense), redColor, lightGray, boldStyle, baseStyle)),
               pw.SizedBox(width: 8),
-              pw.Expanded(child: _buildStatBox('أقل مصروف', '${_formatNumber(adv.minSingleExpense)}', greenColor, lightGray, boldStyle, baseStyle)),
+              pw.Expanded(child: _buildStatBox('أقل مصروف', _formatNumber(adv.minSingleExpense), greenColor, lightGray, boldStyle, baseStyle)),
               pw.SizedBox(width: 8),
-              pw.Expanded(child: _buildStatBox('الانحراف', '${_formatNumber(adv.stdDeviation)}', orangeColor, lightGray, boldStyle, baseStyle)),
+              pw.Expanded(child: _buildStatBox('الانحراف', _formatNumber(adv.stdDeviation), orangeColor, lightGray, boldStyle, baseStyle)),
             ],
           ),
           if (adv.mostFrequentKind != null) ...[
@@ -566,7 +565,7 @@ class ExpensesKPIPdfService {
             rows: data.top5Expenses.asMap().entries.map((entry) {
               final i = entry.key;
               final e = entry.value;
-              return ['${i + 1}', e.name, e.group, '${_formatNumber(e.amount)}', '${e.transactions}', '${e.percent}%'];
+              return ['${i + 1}', e.name, e.group, (_formatNumber(e.amount)), '${e.transactions}', '${e.percent}%'];
             }).toList(),
             primaryColor: primaryColor,
             baseStyle: baseStyle,
@@ -596,7 +595,7 @@ class ExpensesKPIPdfService {
             rows: items.asMap().entries.map((entry) {
               final i = entry.key;
               final e = entry.value;
-              return ['${i + 1}', e.name, '${_formatNumber(e.current)}', '${_formatNumber(e.previous)}',
+              return ['${i + 1}', e.name, (_formatNumber(e.current)), (_formatNumber(e.previous)),
                 '${e.isIncrease ? "+" : "-"}${e.change.abs()}%'];
             }).toList(),
             primaryColor: color,
@@ -626,9 +625,9 @@ class ExpensesKPIPdfService {
           _buildTable(
             headers: ['المجموعة', 'الحالي', 'السابق', 'التغير', 'العام السابق', 'التغير السنوي'],
             rows: data.groupsData.map((g) {
-              return [g.group, '${_formatNumber(g.current)}', '${_formatNumber(g.vsPrevious.amount)}',
+              return [g.group, (_formatNumber(g.current)), (_formatNumber(g.vsPrevious.amount)),
                 '${g.vsPrevious.change > 0 ? "+" : ""}${g.vsPrevious.change}%',
-                '${_formatNumber(g.vsLastYear.amount)}',
+                (_formatNumber(g.vsLastYear.amount)),
                 '${g.vsLastYear.change > 0 ? "+" : ""}${g.vsLastYear.change}%'];
             }).toList(),
             primaryColor: primaryColor,
@@ -658,7 +657,7 @@ class ExpensesKPIPdfService {
           _buildTable(
             headers: ['الفرع', 'المبلغ', 'النسبة', 'التغير', 'التغير السنوي'],
             rows: data.branchesData.map((b) {
-              return [b.name, '${_formatNumber(b.current)}', '${b.percentOfTotal}%',
+              return [b.name, (_formatNumber(b.current)), '${b.percentOfTotal}%',
                 '${b.vsPrevious.change > 0 ? "+" : ""}${b.vsPrevious.change}%',
                 '${b.vsLastYear.change > 0 ? "+" : ""}${b.vsLastYear.change}%'];
             }).toList(),

@@ -57,7 +57,7 @@ class _BranchComparisonState extends State<BranchComparison> {
                   color: AppColors.info.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.compare,
                   color: AppColors.info,
                   size: 20,
@@ -346,7 +346,7 @@ class _BranchComparisonState extends State<BranchComparison> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (winner == 1)
-                        Icon(Icons.emoji_events, size: 16, color: Colors.amber),
+                        const Icon(Icons.emoji_events, size: 16, color: Colors.amber),
                       if (winner == 1) const SizedBox(width: 4),
                       Flexible(
                         child: Text(
@@ -369,7 +369,7 @@ class _BranchComparisonState extends State<BranchComparison> {
                     child: LinearProgressIndicator(
                       value: progress1.clamp(0.0, 1.0),
                       backgroundColor: AppColors.getBorder(isDark),
-                      valueColor: AlwaysStoppedAnimation<Color>(
+                      valueColor: const AlwaysStoppedAnimation<Color>(
                         AppColors.primary,
                       ),
                       minHeight: 6,
@@ -387,7 +387,7 @@ class _BranchComparisonState extends State<BranchComparison> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (winner == 2)
-                        Icon(Icons.emoji_events, size: 16, color: Colors.amber),
+                        const Icon(Icons.emoji_events, size: 16, color: Colors.amber),
                       if (winner == 2) const SizedBox(width: 4),
                       Flexible(
                         child: Text(
@@ -410,7 +410,7 @@ class _BranchComparisonState extends State<BranchComparison> {
                     child: LinearProgressIndicator(
                       value: progress2.clamp(0.0, 1.0),
                       backgroundColor: AppColors.getBorder(isDark),
-                      valueColor: AlwaysStoppedAnimation<Color>(
+                      valueColor: const AlwaysStoppedAnimation<Color>(
                         AppColors.secondary,
                       ),
                       minHeight: 6,
@@ -430,14 +430,17 @@ class _BranchComparisonState extends State<BranchComparison> {
     int score1 = 0;
     int score2 = 0;
 
-    if (branch1.amount > branch2.amount) score1++;
-    else if (branch2.amount > branch1.amount) score2++;
+    if (branch1.amount > branch2.amount) {
+      score1++;
+    } else if (branch2.amount > branch1.amount) score2++;
 
-    if (branch1.transactions > branch2.transactions) score1++;
-    else if (branch2.transactions > branch1.transactions) score2++;
+    if (branch1.transactions > branch2.transactions) {
+      score1++;
+    } else if (branch2.transactions > branch1.transactions) score2++;
 
-    if (branch1.percentage > branch2.percentage) score1++;
-    else if (branch2.percentage > branch1.percentage) score2++;
+    if (branch1.percentage > branch2.percentage) {
+      score1++;
+    } else if (branch2.percentage > branch1.percentage) score2++;
 
     final winner = score1 > score2 ? branch1 : (score2 > score1 ? branch2 : null);
     final winnerColor = score1 > score2 ? AppColors.primary : AppColors.secondary;
@@ -465,7 +468,7 @@ class _BranchComparisonState extends State<BranchComparison> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (winner != null) ...[
-            Icon(Icons.emoji_events, color: Colors.amber, size: 24),
+            const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
             const SizedBox(width: 12),
             Text(
               '${winner.name} الأفضل أداءً',

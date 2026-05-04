@@ -8,6 +8,8 @@ import 'ChildAbsenceHistoryScreen.dart';
 import '../providers/classes_provider.dart';
 import '../providers/children_provider.dart';
 import '../providers/auth_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ChildDetailsScreen extends StatefulWidget {
   final int childId;
@@ -560,11 +562,21 @@ _buildInfoCard(
           ),
           _buildQuickActionDivider(isDark),
           _buildQuickAction(
-            icon: Icons.message_rounded,
-            label: "رسالة",
-            color: const Color(0xFF3B82F6),
-            onTap: () {},
-          ),
+  icon: FontAwesomeIcons.whatsapp,
+  label: "واتساب",
+  color: const Color(0xFF25D366),
+  onTap: () {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDark = themeProvider.isDark;
+    _showPhoneChooser(
+      isDark: isDark,
+      title: "واتساب مع",
+      icon: FontAwesomeIcons.whatsapp,
+      color: const Color(0xFF25D366),
+      onSelect: (phone) => _openWhatsApp(phone),
+    );
+  },
+),
           _buildQuickActionDivider(isDark),
           _buildQuickAction(
             icon: Icons.share_rounded,
@@ -766,24 +778,39 @@ _buildInfoCard(
                         ),
                       ),
                     ),
-                    if (isPhone && hasValue)
-                      GestureDetector(
-                        onTap: () {
-                          // TODO: Make phone call
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.call_rounded,
-                            size: 16,
-                            color: Color(0xFF10B981),
-                          ),
-                        ),
-                      ),
+                    if (isPhone && hasValue) ...[
+  GestureDetector(
+    onTap: () => _openWhatsApp(value!),
+    child: Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF25D366).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const FaIcon(
+        FontAwesomeIcons.whatsapp,
+        size: 16,
+        color: Color(0xFF25D366),
+      ),
+    ),
+  ),
+  const SizedBox(width: 8),
+  GestureDetector(
+    onTap: () => _callPhone(value!),
+    child: Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10B981).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(
+        Icons.call_rounded,
+        size: 16,
+        color: Color(0xFF10B981),
+      ),
+    ),
+  ),
+],
                   ],
                 ),
               ],
@@ -1018,7 +1045,7 @@ _buildInfoCard(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ChildAbsenceHistoryScreen(
-                      childId: widget.childId!, // تأكد إنك معاك الـ ID (غالباً هو widget.childId أو child['ID_Child'])
+                      childId: widget.childId, // تأكد إنك معاك الـ ID (غالباً هو widget.childId أو child['ID_Child'])
                       childName: widget.childName, // أو المتغير اللي شايل الاسم
                     ), 
                   ),
@@ -1115,26 +1142,17 @@ _buildInfoCard(
 
   // 📞 Make Phone Call
   void _makePhoneCall() {
-    final phone = _data['FatherMobile1'] ?? _data['MotherMobile1'];
-    if (phone != null) {
-      // TODO: Implement phone call using url_launcher
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.phone, color: Colors.white),
-              const SizedBox(width: 10),
-              Text("جاري الاتصال بـ $phone"),
-            ],
-          ),
-          backgroundColor: const Color(0xFF10B981),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    }
-  }
+  final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+  final isDark = themeProvider.isDark;
+
+  _showPhoneChooser(
+    isDark: isDark,
+    title: "اتصال بـ",
+    icon: Icons.phone_rounded,
+    color: const Color(0xFF10B981),
+    onSelect: (phone) => _callPhone(phone),
+  );
+}
 
   // ⚙️ Options Bottom Sheet
   void _showOptionsSheet(bool isDark) {
@@ -1748,4 +1766,239 @@ Future<void> _showAssignToClassDialog(bool isDark) async {
       return date.toString();
     }
   }
+
+  // 🔢 تحويل الرقم لصيغة دولية مصرية
+String _normalizePhone(String phone) {
+  String cleaned = phone.replaceAll(RegExp(r'[\s\-\+]'), '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '2$cleaned'.replaceFirst('20', '2');
+    if (!cleaned.startsWith('20')) {
+      cleaned = '20${cleaned.substring(1)}';
+    }
+  }
+  if (!cleaned.startsWith('2')) {
+    cleaned = '2$cleaned';
+  }
+  if (cleaned.startsWith('2') && !cleaned.startsWith('20')) {
+    cleaned = '20${cleaned.substring(1)}';
+  }
+  return cleaned;
+}
+
+// 📞 فتح تطبيق الاتصال
+Future<void> _callPhone(String phone) async {
+  final uri = Uri.parse('tel:$phone');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri);
+  } else {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.error_rounded, color: Colors.white),
+              SizedBox(width: 10),
+              Text("لا يمكن إجراء الاتصال"),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  }
+}
+
+// 💬 فتح تطبيق واتساب
+Future<void> _openWhatsApp(String phone) async {
+  final normalized = _normalizePhone(phone);
+  final uri = Uri.parse('https://wa.me/$normalized');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } else {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.error_rounded, color: Colors.white),
+              SizedBox(width: 10),
+              Text("واتساب غير مثبت على الجهاز"),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  }
+}
+
+// 📋 عرض اختيار الرقم (أب / أم)
+void _showPhoneChooser({
+  required bool isDark,
+  required String title,
+  required IconData icon,
+  required Color color,
+  required Function(String phone) onSelect,
+}) {
+  final fatherPhone = _data['FatherMobile1']?.toString();
+  final motherPhone = _data['MotherMobile1']?.toString();
+
+  final hasFather = fatherPhone != null && fatherPhone.isNotEmpty;
+  final hasMother = motherPhone != null && motherPhone.isNotEmpty;
+
+  // لو مفيش أرقام خالص
+  if (!hasFather && !hasMother) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.warning_rounded, color: Colors.white),
+            SizedBox(width: 10),
+            Text("لا يوجد رقم متاح للأب أو الأم"),
+          ],
+        ),
+        backgroundColor: const Color(0xFFF59E0B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+    return;
+  }
+
+  // لو رقم واحد فقط
+  if (hasFather && !hasMother) {
+    onSelect(fatherPhone!);
+    return;
+  }
+  if (!hasFather && hasMother) {
+    onSelect(motherPhone!);
+    return;
+  }
+
+  // لو الاتنين موجودين → اختيار
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) {
+      return Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF252836) : Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Title
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 24),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // الأب
+            ListTile(
+              onTap: () {
+                Navigator.pop(ctx);
+                onSelect(fatherPhone!);
+              },
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.male_rounded, color: Color(0xFF3B82F6)),
+              ),
+              title: Text(
+                "الأب",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              subtitle: Text(
+                fatherPhone!,
+                style: TextStyle(color: Colors.grey[500]),
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: Colors.grey[400],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // الأم
+            ListTile(
+              onTap: () {
+                Navigator.pop(ctx);
+                onSelect(motherPhone!);
+              },
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEC4899).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.female_rounded, color: Color(0xFFEC4899)),
+              ),
+              title: Text(
+                "الأم",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              subtitle: Text(
+                motherPhone!,
+                style: TextStyle(color: Colors.grey[500]),
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: Colors.grey[400],
+              ),
+            ),
+
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
+          ],
+        ),
+      );
+    },
+  );
+}
 }

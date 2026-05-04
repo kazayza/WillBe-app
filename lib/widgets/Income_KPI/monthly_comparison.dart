@@ -64,7 +64,7 @@ class _MonthlyComparisonState extends State<MonthlyComparison> {
                   color: AppColors.primaryLight.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.calendar_view_month,
                   color: AppColors.primaryLight,
                   size: 20,
@@ -104,11 +104,11 @@ class _MonthlyComparisonState extends State<MonthlyComparison> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.star, size: 14, color: AppColors.success),
+                      const Icon(Icons.star, size: 14, color: AppColors.success),
                       const SizedBox(width: 4),
                       Text(
                         _arabicMonths[_getBestMonth()! - 1],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.success,
@@ -159,7 +159,7 @@ class _MonthlyComparisonState extends State<MonthlyComparison> {
                         children: [
                           TextSpan(
                             text: '${_currencyFormat.format(month.amount.round())} ج.م',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -398,7 +398,7 @@ class _MonthlyComparisonState extends State<MonthlyComparison> {
             children: [
               Text(
                 _arabicMonths[month.month - 1],
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                   color: AppColors.primary,

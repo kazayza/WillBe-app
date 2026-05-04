@@ -3,8 +3,8 @@ import '../services/api_service.dart';
 
 class AttendanceProvider with ChangeNotifier {
   List<dynamic> _students = []; // قائمة الطلاب
-  Set<int> _absentIds = {};     // أرقام الغائبين (Set لمنع التكرار)
-  Map<int, String> _notes = {}; // الملاحظات {id: note}
+  final Set<int> _absentIds = {};     // أرقام الغائبين (Set لمنع التكرار)
+  final Map<int, String> _notes = {}; // الملاحظات {id: note}
   bool _isLoading = false;
 
   List<dynamic> get students => _students;

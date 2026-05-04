@@ -901,7 +901,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen>
 
   Widget _buildRelationshipDropdown(bool isDark) {
     return DropdownButtonFormField<String>(
-      value: _relationship,
+      initialValue: _relationship,
       items: _relationships.map((r) => DropdownMenuItem<String>(
         value: r,
         child: Text(r, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
@@ -973,7 +973,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen>
           Switch(
             value: _isPrimary,
             onChanged: (v) => setState(() => _isPrimary = v),
-            activeColor: const Color(0xFF10B981),
+            activeThumbColor: const Color(0xFF10B981),
           ),
         ],
       ),

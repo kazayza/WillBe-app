@@ -73,7 +73,7 @@ class Top5List extends StatelessWidget {
   }
 
   Widget _buildItem(dynamic item, int index) {
-    final maxPercent = 100.0;
+    const maxPercent = 100.0;
     final barWidth = (item.percent / maxPercent).clamp(0.0, 1.0);
 
     return Container(

@@ -17,7 +17,6 @@ import 'add_lead_screen.dart';
 import 'add_task_screen.dart';
 import 'crm_dashboard_screen.dart';
 import 'customers_list_screen.dart';
-import 'customer_interactions_screen.dart';
 import 'tasks_list_screen.dart';
 import 'child_form_screen.dart';
 import 'leads_list_screen.dart';
@@ -41,6 +40,13 @@ import 'debt_kpi_screen.dart';
 import 'installment_calendar_screen.dart';
 import 'bus_line_children_screen.dart';
 import 'bus_lines_management_screen.dart';
+import 'payroll_screen.dart';
+import 'profit_loss_screen.dart';
+import 'finance_sessions_screen.dart';
+import 'child_income_screen.dart';
+import 'income_report_screen.dart';
+import 'salary_inquiry_screen.dart';
+import 'children_balances_screen.dart';
 
 
 class SectionScreensPage extends StatefulWidget {
@@ -70,25 +76,26 @@ class _SectionScreensPageState extends State<SectionScreensPage>
     'frm_ChildNew': () => const ChildFormScreen(),
     'frmClassesDashboard':()=>const ClassesDashboardScreen(),
     'frm_absenseChild':()=>const AttendanceChildrenScreen(),
+    'frm_ChildIncome':()=>const FinanceSessionsScreen(),
 
     // الموارد البشرية
     'Employee List': () => const EmployeesListScreen(),
     'frm_EmployeeDetails': () => const EmployeeFormScreen(),
     'frm_absenseEmp': () => const EmployeeAttendanceScreen(),
-    'frm_eshraf': () => AddEshrafScreen(),
-    'frm_eshrafOnly' : () => AddEshrafOnlyScreen(),
-    'frm_AllEshraf' : () => EshrafHistoryScreen(),
+    'frm_eshraf': () => const AddEshrafScreen(),
+    'frm_eshrafOnly' : () => const AddEshrafOnlyScreen(),
+    'frm_AllEshraf' : () => const EshrafHistoryScreen(),
     'frmInteractions' : () => const UnifiedInteractionsScreen(),
 
     // إدارة العملاء CRM
     'frmCRMDashboard': () => const CRMDashboardScreen(),
-    'frmAddLeads': () => const AddLeadScreen(),
+    //'frmAddLeads': () => const AddLeadScreen(),
     'frmLeads': () => const LeadsListScreen(),
     'frmAddTask': () => const AddTaskScreen(),
     'frmTasksList': () => const TasksListScreen(),
-    'frmAddCustomer': () =>  AddCustomerScreen(),
-    'CRM KPI':() => CRMKPIDashboardScreen(),
-    'frmCustomer' : ()=> CustomersListScreen(),
+    //'frmAddCustomer': () =>  const AddCustomerScreen(),
+    'CRM KPI':() => const CRMKPIDashboardScreen(),
+    'frmCustomer' : ()=> const CustomersListScreen(),
 
     // المصروفات
     'frm_expenses': () => const ExpensesListScreen(),
@@ -96,9 +103,10 @@ class _SectionScreensPageState extends State<SectionScreensPage>
     'frm_expSingle': () => const AddExpenseScreen(),
     'ExpensesKPI':()=>const ExpensesKPIScreen(),
     'frm_expenseKindEdite':()=> const GenericKindsScreen(isIncome: false),
+    'frm_salary':()=> const PayrollScreen(),
 
     //الايرادات
-
+     
     'frm_MonthlySubscrip': () => const SubscriptionPaymentScreen(type: SubscriptionType.study),
     'frm_IncomBus': () => const SubscriptionPaymentScreen(type: SubscriptionType.bus),
     'frm_income':()=>const GeneralIncomeScreen(),
@@ -111,6 +119,11 @@ class _SectionScreensPageState extends State<SectionScreensPage>
 
     // التقارير
     'rpt_absenseChild':()=>const ChildrenAttendanceReportScreen(),
+    'frm_QaemaMarkazMaly' : () => const ProfitLossScreen(),
+    'frm_KindIncomeChild' : () => const ChildIncomeScreen(),
+    'frm_reportincomeDetalis' : () => const IncomeReportScreen(),
+    'frm_qrysalary' : () =>  const SalaryInquiryScreen(),
+    'frm_QryArsedaChild'  : () =>  ChildrenBalancesScreen(),
     
     //الباص
     'frm_Qbuslines': () => const BusLineChildrenScreen(),

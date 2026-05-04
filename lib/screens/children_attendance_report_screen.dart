@@ -188,7 +188,7 @@ class _ChildrenAttendanceReportScreenState extends State<ChildrenAttendanceRepor
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: _selectedBranchId,
+                        initialValue: _selectedBranchId,
                         isExpanded: true, // 👈 الحل السحري (يمنع الخروج عن النص)
                         hint: const Text("كل الفروع", style: TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
                         items: [
@@ -205,7 +205,7 @@ class _ChildrenAttendanceReportScreenState extends State<ChildrenAttendanceRepor
                     const SizedBox(width: 8),
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: _selectedClassId,
+                        initialValue: _selectedClassId,
                         isExpanded: true, // 👈 الحل السحري
                         hint: const Text("كل الفصول", style: TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
                         items: [

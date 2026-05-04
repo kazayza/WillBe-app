@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
@@ -1288,8 +1287,8 @@ class _CustomerInteractionsScreenState extends State<CustomerInteractionsScreen>
                           if (subjectController.text.trim().isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Row(
-                                  children: const [
+                                content: const Row(
+                                  children: [
                                     Icon(Icons.warning_rounded, color: Colors.white),
                                     SizedBox(width: 10),
                                     Text('الموضوع مطلوب'),
@@ -1484,8 +1483,8 @@ class _CustomerInteractionsScreenState extends State<CustomerInteractionsScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: const [
+            content: const Row(
+              children: [
                 Icon(Icons.check_circle_rounded, color: Colors.white),
                 SizedBox(width: 10),
                 Text('تم إضافة التفاعل بنجاح ✅'),

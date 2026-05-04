@@ -534,10 +534,10 @@ class _SentTasksScreenState extends State<SentTasksScreen>
                           // ✅ عرض اسم المُرسل إليه
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.person_rounded,
                                 size: 12,
-                                color: const Color(0xFF6366F1),
+                                color: Color(0xFF6366F1),
                               ),
                               const SizedBox(width: 4),
                               Text(

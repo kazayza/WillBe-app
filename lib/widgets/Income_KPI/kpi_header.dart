@@ -145,9 +145,9 @@ class _KpiHeaderState extends State<KpiHeader> {
           // فلاتر الفروع والمقارنة
           // ─────────────────────────────────────────────────
           if (_isLoadingFilters)
-            Center(
+            const Center(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.0),
                 child: SizedBox(
                   width: 20,
                   height: 20,
@@ -519,8 +519,7 @@ class _KpiHeaderState extends State<KpiHeader> {
                   onPrimary: Colors.white,
                   surface: AppColors.getCard(isDark),
                   onSurface: AppColors.getText(isDark),
-                ),
-                dialogBackgroundColor: AppColors.getCard(isDark),
+                ), dialogTheme: DialogThemeData(backgroundColor: AppColors.getCard(isDark)),
               ),
               child: child!,
             );
@@ -543,7 +542,7 @@ class _KpiHeaderState extends State<KpiHeader> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.calendar_today,
               size: 18,
               color: AppColors.primary,
@@ -551,7 +550,7 @@ class _KpiHeaderState extends State<KpiHeader> {
             const SizedBox(width: 10),
             Text(
               '${DateFormat('yyyy/MM/dd').format(widget.fromDate)} - ${DateFormat('yyyy/MM/dd').format(widget.toDate)}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
                 fontSize: 14,

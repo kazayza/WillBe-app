@@ -256,13 +256,34 @@ class _EshrafHistoryScreenState extends State<EshrafHistoryScreen>
   }
 
   Future<void> _editTransaction(Map<String, dynamic> item) async {
-    final amountCtrl = TextEditingController(text: item['amountPenalty'].toString());
-    final notesCtrl = TextEditingController(text: item['notesPenalty'] ?? '');
-    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDark;
+  
+  final amountCtrl =
+      TextEditingController(text: item['amountPenalty'].toString());
+  final notesCtrl =
+      TextEditingController(text: item['notesPenalty'] ?? '');
+  final isDark =
+      Provider.of<ThemeProvider>(context, listen: false).isDark;
 
-    await showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
+  String? selectedKindId;
+  String? selectedKindName = item['KindPenalty']?.toString();
+
+  // ✅ محاولة تحديد النوع الحالي من القائمة المحملة
+  for (final type in _eshrafTypes) {
+    final typeId = type['id']?.toString();
+    final typeName = type['name']?.toString();
+
+    if (typeId == item['KindPenalty']?.toString() ||
+        typeName == item['KindPenalty']?.toString()) {
+      selectedKindId = typeId;
+      selectedKindName = typeName;
+      break;
+    }
+  }
+
+  await showDialog(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setDialogState) => AlertDialog(
         backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
@@ -288,7 +309,7 @@ class _EshrafHistoryScreenState extends State<EshrafHistoryScreen>
                     ),
                   ),
                   Text(
-                    item['KindPenalty'] ?? '',
+                    selectedKindName ?? 'اختر النوع',
                     style: TextStyle(
                       color: isDark ? Colors.white60 : Colors.grey,
                       fontSize: 12,
@@ -299,94 +320,171 @@ class _EshrafHistoryScreenState extends State<EshrafHistoryScreen>
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? Colors.black12 : Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ✅ النوع
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black12 : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                  ),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: selectedKindId,
+                  isExpanded: true,
+                  dropdownColor:
+                      isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'النوع',
+                    labelStyle: TextStyle(
+                      color: isDark ? Colors.white60 : Colors.grey,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                    prefixIcon: Icon(
+                      Icons.category_rounded,
+                      color: isDark ? Colors.white60 : Colors.grey,
+                    ),
+                  ),
+                  items: _eshrafTypes.map<DropdownMenuItem<String>>((type) {
+                    return DropdownMenuItem<String>(
+                      value: type['id']?.toString(),
+                      child: Text(
+                        type['name'] ?? type['id'] ?? '',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setDialogState(() {
+                      selectedKindId = value;
+                      final selectedType = _eshrafTypes.firstWhere(
+                        (t) => t['id']?.toString() == value,
+                        orElse: () => {'name': value},
+                      );
+                      selectedKindName =
+                          selectedType['name']?.toString() ?? value;
+                    });
+                  },
                 ),
               ),
-              child: TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(height: 16),
+
+              // ✅ المبلغ
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black12 : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                  ),
                 ),
-                decoration: InputDecoration(
-                  labelText: 'المبلغ',
-                  labelStyle: TextStyle(color: isDark ? Colors.white60 : Colors.grey),
-                  suffixText: 'ج.م',
-                  suffixStyle: TextStyle(
-                    color: isDark ? Colors.white60 : Colors.grey,
+                child: TextField(
+                  controller: amountCtrl,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(16),
-                  prefixIcon: Icon(
-                    Icons.payments_outlined,
-                    color: isDark ? Colors.white60 : Colors.grey,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? Colors.black12 : Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                ),
-              ),
-              child: TextField(
-                controller: notesCtrl,
-                maxLines: 3,
-                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                decoration: InputDecoration(
-                  labelText: 'ملاحظات',
-                  labelStyle: TextStyle(color: isDark ? Colors.white60 : Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(16),
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.only(bottom: 40),
-                    child: Icon(
-                      Icons.notes,
+                  decoration: InputDecoration(
+                    labelText: 'المبلغ',
+                    labelStyle: TextStyle(
+                      color: isDark ? Colors.white60 : Colors.grey,
+                    ),
+                    suffixText: 'ج.م',
+                    suffixStyle: TextStyle(
+                      color: isDark ? Colors.white60 : Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                    prefixIcon: Icon(
+                      Icons.payments_outlined,
                       color: isDark ? Colors.white60 : Colors.grey,
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+
+              // ✅ الملاحظات
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black12 : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                  ),
+                ),
+                child: TextField(
+                  controller: notesCtrl,
+                  maxLines: 3,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'ملاحظات',
+                    labelStyle: TextStyle(
+                      color: isDark ? Colors.white60 : Colors.grey,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(bottom: 40),
+                      child: Icon(
+                        Icons.notes,
+                        color: isDark ? Colors.white60 : Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'إلغاء',
-              style: TextStyle(color: isDark ? Colors.white60 : Colors.grey),
+              style: TextStyle(
+                color: isDark ? Colors.white60 : Colors.grey,
+              ),
             ),
           ),
           ElevatedButton(
             onPressed: () async {
+              if (selectedKindId == null) {
+                _showErrorSnackBar('اختر النوع');
+                return;
+              }
+
               Navigator.pop(ctx);
               setState(() => _isLoading = true);
+
               try {
-                final auth = Provider.of<AuthProvider>(context, listen: false);
+                final auth =
+                    Provider.of<AuthProvider>(context, listen: false);
+
                 await ApiService.updateEshraf(item['ID'], {
                   'amount': double.tryParse(amountCtrl.text) ?? 0,
                   'notes': notesCtrl.text,
-                  'kind': item['KindPenalty'],
+                  'kind': selectedKindId, // ✅ النوع بعد التعديل
                   'user': auth.user?.fullName ?? 'Unknown',
-                  'date': item['datePenalty']
+                  'date': item['datePenalty'],
                 });
+
                 await _loadData();
+
                 if (mounted) {
                   _showSuccessSnackBar('تم التعديل بنجاح');
                 }
@@ -402,14 +500,19 @@ class _EshrafHistoryScreenState extends State<EshrafHistoryScreen>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            child: const Text('حفظ التعديلات', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'حفظ التعديلات',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _selectDateRange() async {
     final isDark = Provider.of<ThemeProvider>(context, listen: false).isDark;
@@ -1849,17 +1952,23 @@ class _EmployeesBottomSheetState extends State<_EmployeesBottomSheet> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    _filteredList = widget.employees;
-  }
+void initState() {
+  super.initState();
+  _filteredList = widget.employees.where((e) {
+    return e['empstatus'] == true || e['empstatus'] == 1;
+  }).toList();
+}
 
   void _filter(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _filteredList = widget.employees;
-      } else {
-        _filteredList = widget.employees.where((e) {
+  final activeEmployees = widget.employees.where((e) {
+    return e['empstatus'] == true || e['empstatus'] == 1;
+  }).toList();
+
+  setState(() {
+    if (query.isEmpty) {
+      _filteredList = activeEmployees;
+    } else {
+      _filteredList = activeEmployees.where((e) {
           final name = (e['empName'] ?? '').toString().toLowerCase();
           final job = (e['job'] ?? '').toString().toLowerCase();
           return name.contains(query.toLowerCase()) ||
@@ -1921,7 +2030,7 @@ class _EmployeesBottomSheetState extends State<_EmployeesBottomSheet> {
                       ),
                     ),
                     Text(
-                      '${widget.employees.length} موظف',
+                      '${widget.employees.where((e) => e['empstatus'] == true || e['empstatus'] == 1).length} موظف',
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.white60 : Colors.grey,

@@ -714,7 +714,7 @@ void _openViewInstallments(Map<String, dynamic> item) {
                           ))
                       .toList(),
                   onChanged: (val) =>
-                      setState(() => _selectedSession = val as int?),
+                      setState(() => _selectedSession = val),
                   validator: (v) => v == null ? "مطلوب" : null,
                 ),
 
@@ -751,7 +751,7 @@ void _openViewInstallments(Map<String, dynamic> item) {
                     ),
                   ],
                   onChanged: (val) =>
-                      setState(() => _selectedKind = val as String?),
+                      setState(() => _selectedKind = val),
                   validator: (v) => v == null ? "مطلوب" : null,
                 ),
 
@@ -771,7 +771,7 @@ void _openViewInstallments(Map<String, dynamic> item) {
                             ))
                         .toList(),
                     onChanged: (val) =>
-                        setState(() => _selectedBusLine = val as int?),
+                        setState(() => _selectedBusLine = val),
                     validator: (v) => v == null ? "مطلوب" : null,
                   ),
                 ],
@@ -1489,7 +1489,7 @@ Row(
     Color color = const Color(0xFF10B981),
   }) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       items: items,
       onChanged: onChanged,
       validator: validator,

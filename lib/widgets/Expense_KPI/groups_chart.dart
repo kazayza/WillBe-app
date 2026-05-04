@@ -209,7 +209,7 @@ class GroupsChart extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          '${_formatNumber(amount)}',
+          _formatNumber(amount),
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,

@@ -95,6 +95,7 @@ class AppSections {
       //'frm_FullSearch',
       'frm_absenseChild',
       'frmClassesDashboard',
+      'frm_ChildIncome',
     ],
     screens: [
       //SubScreen(
@@ -124,8 +125,8 @@ class AppSections {
       ),
       SubScreen(
         formName: 'frm_ChildIncome',
-        title: 'اشتراكات الطفل',
-        icon: Icons.receipt_long_rounded,
+        title: 'اشتراكات الاطفال',
+       icon: Icons.receipt_long_rounded,
       ),
       //SubScreen(
         //formName: 'frm_QChildExport',
@@ -222,21 +223,21 @@ class AppSections {
         title: 'العملاء المحتملين',
         icon: Icons.person_search_rounded,
       ),
-      SubScreen(
-        formName: 'frmAddLeads',
-        title: 'إضافة عميل محتمل',
-        icon: Icons.person_add_alt_1_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frmAddLeads',
+        //title: 'إضافة عميل محتمل',
+        //icon: Icons.person_add_alt_1_rounded,
+      //),
       SubScreen(
         formName: 'frmCustomer',
         title: 'العملاء الفعليين',
         icon: Icons.verified_user_rounded,
       ),
-      SubScreen(
-        formName: 'frmAddCustomer',
-        title: 'إضافة عميل فعلي',
-        icon: Icons.how_to_reg_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frmAddCustomer',
+        //title: 'إضافة عميل فعلي',
+        //icon: Icons.how_to_reg_rounded,
+      //),
       SubScreen(
         formName: 'frmTasksList',
         title: 'قائمة المهام',
@@ -425,13 +426,16 @@ class AppSections {
       'frm_administrator',
       'frm_QaemaMarkazMaly',
       'rpt_absenseChild',
+      'frm_reportincomeDetalis',
+      'frm_KindIncomeChild',
+      'frm_qrysalary',
     ],
     screens: [
-      SubScreen(
-        formName: 'frm_administrator',
-        title: 'إحصائيات الإدارة',
-        icon: Icons.dashboard_rounded,
-      ),
+      //SubScreen(
+        //formName: 'frm_administrator',
+        //title: 'إحصائيات الإدارة',
+        //icon: Icons.dashboard_rounded,
+      //),
       SubScreen(
         formName: 'frm_QaemaMarkazMaly',
         title: 'المركز المالي',
@@ -448,30 +452,46 @@ class AppSections {
         icon: Icons.assignment_ind_rounded,
       ),
       SubScreen(
-        formName: 'frm_QQuery2Plus1',
-        title: 'الطلبة المدينين',
-        icon: Icons.warning_amber_rounded,
+        formName: 'frm_reportincomeDetalis',
+        title: 'استعلام الإيرادات',
+        icon: Icons.search_rounded,
       ),
       SubScreen(
-        formName: 'frm_QFinanceChildBySesson',
-        title: 'أعداد الأطفال بالعام',
-        icon: Icons.people_outline_rounded,
+        formName: 'frm_KindIncomeChild',
+        title: 'اشتراك معين لطفل',
+        icon: Icons.account_balance_wallet_rounded,
       ),
-      SubScreen(
-        formName: 'ComparExpenseMonthOverMonth',
-        title: 'مقارنة المصروفات شهرياً',
-        icon: Icons.compare_arrows_rounded,
-      ),
-      SubScreen(
-        formName: 'ComparExpensesMonthOverYear',
-        title: 'مقارنة المصروفات سنوياً',
-        icon: Icons.compare_rounded,
-      ),
-      SubScreen(
-        formName: 'ComparincomeMonthOverYear',
-        title: 'مقارنة الإيرادات سنوياً',
-        icon: Icons.trending_up_rounded,
-      ),
+
+        SubScreen(
+          formName: 'frm_qrysalary',
+          title: 'استعلام المرتبات',
+          icon: Icons.payments_rounded,
+        ),
+      //SubScreen(
+       // formName: 'frm_QQuery2Plus1',
+       // title: 'الطلبة المدينين',
+       // icon: Icons.warning_amber_rounded,
+      //),
+      //SubScreen(
+        //formName: 'frm_QFinanceChildBySesson',
+        //title: 'أعداد الأطفال بالعام',
+       // icon: Icons.people_outline_rounded,
+      //),
+      //SubScreen(
+       // formName: 'ComparExpenseMonthOverMonth',
+       // title: 'مقارنة المصروفات شهرياً',
+       // icon: Icons.compare_arrows_rounded,
+      //),
+      //SubScreen(
+        //formName: 'ComparExpensesMonthOverYear',
+        //title: 'مقارنة المصروفات سنوياً',
+       // icon: Icons.compare_rounded,
+      //),
+      //SubScreen(
+       // formName: 'ComparincomeMonthOverYear',
+        //title: 'مقارنة الإيرادات سنوياً',
+        //icon: Icons.trending_up_rounded,
+      //),
     ],
   );
 

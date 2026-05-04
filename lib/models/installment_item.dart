@@ -85,7 +85,7 @@ class InstallmentTemplate {
   });
 
   static List<InstallmentTemplate> getTemplates(double totalAmount) {
-    final formatter = (double val) => val.toStringAsFixed(0);
+    String formatter(double val) => val.toStringAsFixed(0);
     
     return [
       InstallmentTemplate(

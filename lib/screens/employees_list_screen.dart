@@ -21,7 +21,7 @@ class _EmployeesListScreenState extends State<EmployeesListScreen>
   final _searchController = TextEditingController();
 
   // Filter Values
-  bool? _filterActive;
+  bool? _filterActive = true;
   int? _filterBranch;
   String? _filterBranchName;
   String? _filterJob;
@@ -52,13 +52,14 @@ class _EmployeesListScreenState extends State<EmployeesListScreen>
   }
 
   void _loadData() {
-    Future.microtask(() {
-      final provider = Provider.of<EmployeesProvider>(context, listen: false);
-      provider.fetchEmployees();
-      provider.fetchLookups();
-      _animationController.forward();
-    });
-  }
+  Future.microtask(() {
+    final provider = Provider.of<EmployeesProvider>(context, listen: false);
+    provider.fetchEmployees(isActive: _filterActive);
+    provider.fetchLookups();
+    _animationController.forward();
+    _updateActiveFiltersCount();
+  });
+}
 
   void _applyFilter() {
     Provider.of<EmployeesProvider>(context, listen: false).fetchEmployees(

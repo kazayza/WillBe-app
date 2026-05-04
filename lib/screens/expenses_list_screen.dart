@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
@@ -106,7 +105,7 @@ class _ExpensesListScreenState extends State<ExpensesListScreen>
       final data = await ApiService.getExpenses();
       if (mounted) {
         setState(() {
-          _expenses = (data as List).map((e) {
+          _expenses = (data).map((e) {
             return Map<String, dynamic>.from(e);
           }).toList();
           _calculateMonthTotal(); // حساب إجمالي الشهر (ثابت)
@@ -124,7 +123,7 @@ class _ExpensesListScreenState extends State<ExpensesListScreen>
       final data = await ApiService.getBranches();
       if (mounted) {
         setState(() {
-          _branches = (data as List).map((b) {
+          _branches = (data).map((b) {
             return {
               'IDbranch': b['IDbranch'],
               'branchName': b['branchName'] ?? '',
@@ -143,7 +142,7 @@ class _ExpensesListScreenState extends State<ExpensesListScreen>
       final data = await ApiService.getExpenseKinds();
       if (mounted) {
         setState(() {
-          _expenseKinds = (data as List).map((k) {
+          _expenseKinds = (data).map((k) {
             return {
               'ID': k['ID'],
               'expenseKind': k['expenseKind'] ?? '',

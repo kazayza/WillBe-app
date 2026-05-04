@@ -1109,11 +1109,11 @@ Widget _buildIncomeTypesCard() {
                   color: _successColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_circle, color: _successColor, size: 16),
-                    const SizedBox(width: 6),
+                    Icon(Icons.check_circle, color: _successColor, size: 16),
+                    SizedBox(width: 6),
                     Text(
                       'تم الاختيار',
                       style: TextStyle(
@@ -1775,7 +1775,7 @@ Widget _buildKindListTile(
     required ValueChanged<int?> onChanged,
   }) {
     return DropdownButtonFormField<int>(
-      value: value,
+      initialValue: value,
       items: items,
       onChanged: onChanged,
       style: TextStyle(

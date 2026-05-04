@@ -1192,7 +1192,7 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen>
     Color color = const Color(0xFF3B82F6),
   }) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       items: items,
       onChanged: onChanged,
       validator: validator,
@@ -1291,7 +1291,7 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen>
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: activeColor,
+            activeThumbColor: activeColor,
             activeTrackColor: activeColor.withOpacity(0.3),
             inactiveThumbColor: inactiveColor,
             inactiveTrackColor: inactiveColor.withOpacity(0.3),

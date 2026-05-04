@@ -74,8 +74,7 @@ Future<void> _pickDateRange() async {
                     onPrimary: Colors.white,
                     surface: Colors.white,
                     onSurface: Colors.black,
-                  ),
-            dialogBackgroundColor: isDark ? const Color(0xFF252836) : Colors.white,
+                  ), dialogTheme: DialogThemeData(backgroundColor: isDark ? const Color(0xFF252836) : Colors.white),
           ),
           child: child!,
         );
@@ -237,7 +236,7 @@ Future<void> _pickDateRange() async {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF252836) : Colors.white,
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
             ),
             child: Column(
               children: [

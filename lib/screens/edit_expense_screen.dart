@@ -149,7 +149,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen>
       if (mounted) {
         setState(() {
           // تحويل الأنواع
-          _kinds = (kindsResponse as List).map((k) {
+          _kinds = (kindsResponse).map((k) {
             return {
               'ID': k['ID'],
               'expenseKind': k['expenseKind'] ?? '',
@@ -158,7 +158,7 @@ class _EditExpenseScreenState extends State<EditExpenseScreen>
           }).toList().cast<Map<String, dynamic>>();
 
           // تحويل الفروع
-          _branches = (branchesResponse as List).map((b) {
+          _branches = (branchesResponse).map((b) {
             return {
               'IDbranch': b['IDbranch'],
               'branchName': b['branchName'] ?? '',
@@ -565,12 +565,12 @@ class _EditExpenseScreenState extends State<EditExpenseScreen>
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
+              const Text(
                 "البيانات الأصلية",
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF3B82F6),
+                  color: Color(0xFF3B82F6),
                 ),
               ),
               const Spacer(),

@@ -73,7 +73,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
       if (mounted) {
         setState(() {
           // تحويل الأنواع
-          _kinds = (kindsResponse as List).map((k) {
+          _kinds = (kindsResponse).map((k) {
             return {
               'ID': k['ID'],
               'expenseKind': k['expenseKind'] ?? '',
@@ -82,7 +82,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
           }).toList().cast<Map<String, dynamic>>();
 
           // تحويل الفروع
-          _branches = (branchesResponse as List).map((b) {
+          _branches = (branchesResponse).map((b) {
             return {
               'IDbranch': b['IDbranch'],
               'branchName': b['branchName'] ?? '',
@@ -319,11 +319,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
               _buildDateField(isDark),
               const SizedBox(height: 20),
 
-              // مجموعة المصروفات
-              if (_kindGroups.isNotEmpty) ...[
-                _buildKindGroupDropdown(isDark),
-                const SizedBox(height: 20),
-              ],
+              
 
               // نوع المصروف
               _buildKindDropdown(isDark),
@@ -550,9 +546,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
   // ============ KIND DROPDOWN ============
   Widget _buildKindDropdown(bool isDark) {
     // فلترة الأنواع حسب المجموعة
-    final filteredKinds = _selectedKindGroup != null
-        ? _kinds.where((k) => k['KindGroup'] == _selectedKindGroup).toList()
-        : _kinds;
+   final filteredKinds = _kinds;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -611,14 +605,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen>
             ),
           ),
         ),
-        if (filteredKinds.isEmpty && _kinds.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              'اختر مجموعة أولاً أو ستظهر كل الأنواع',
-              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-            ),
-          ),
+        
       ],
     );
   }

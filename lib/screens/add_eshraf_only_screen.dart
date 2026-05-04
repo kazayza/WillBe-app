@@ -187,14 +187,18 @@ class _AddEshrafOnlyScreenState extends State<AddEshrafOnlyScreen> {
 
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final filteredEmployees = searchQuery.isEmpty
-                ? _employees
-                : _employees.where((e) {
-                    final name = (e['empName'] ?? '').toString().toLowerCase();
-                    final job = (e['job'] ?? '').toString().toLowerCase();
-                    return name.contains(searchQuery.toLowerCase()) ||
-                        job.contains(searchQuery.toLowerCase());
-                  }).toList();
+            final activeEmployees = _employees.where((e) {
+  return e['empstatus'] == true || e['empstatus'] == 1;
+}).toList();
+
+final filteredEmployees = searchQuery.isEmpty
+    ? activeEmployees
+    : activeEmployees.where((e) {
+        final name = (e['empName'] ?? '').toString().toLowerCase();
+        final job = (e['job'] ?? '').toString().toLowerCase();
+        return name.contains(searchQuery.toLowerCase()) ||
+            job.contains(searchQuery.toLowerCase());
+      }).toList();
 
             return Container(
               height: MediaQuery.of(context).size.height * 0.7,
@@ -402,7 +406,7 @@ class _AddEshrafOnlyScreenState extends State<AddEshrafOnlyScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.person_outline, color: Colors.orange),
+                      const Icon(Icons.person_outline, color: Colors.orange),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -451,7 +455,7 @@ class _AddEshrafOnlyScreenState extends State<AddEshrafOnlyScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today, color: Colors.orange),
+                      const Icon(Icons.calendar_today, color: Colors.orange),
                       const SizedBox(width: 12),
                       Text(
                         DateFormat('dd/MM/yyyy').format(_selectedDate),
@@ -478,7 +482,7 @@ class _AddEshrafOnlyScreenState extends State<AddEshrafOnlyScreen> {
                   filled: true,
                   fillColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
                   suffixText: 'ج.م',
-                  prefixIcon: Icon(Icons.attach_money, color: Colors.orange),
+                  prefixIcon: const Icon(Icons.attach_money, color: Colors.orange),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'أدخل المبلغ';
@@ -500,8 +504,8 @@ class _AddEshrafOnlyScreenState extends State<AddEshrafOnlyScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   filled: true,
                   fillColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.only(bottom: 50),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.only(bottom: 50),
                     child: Icon(Icons.notes, color: Colors.orange),
                   ),
                 ),

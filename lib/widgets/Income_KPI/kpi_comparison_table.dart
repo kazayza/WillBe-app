@@ -69,7 +69,7 @@ class KpiComparisonTable extends StatelessWidget {
                     color: AppColors.info.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.compare_arrows,
                     color: AppColors.info,
                     size: 20,
